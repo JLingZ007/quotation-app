@@ -1,12 +1,6 @@
-// utils/generateRunningNumber.js
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
-/**
- * สร้างรหัสลำดับอัตโนมัติแบบ YYMMNNN
- * @param {string|null} lastNumber รหัสลำดับล่าสุด เช่น "2505001"
- * @returns {string} รหัสถัดไป เช่น "2505002"
- */
 export function generateRunningNumber(lastNumber) {
   const now = new Date();
   const year = String(now.getFullYear() % 100).padStart(2, '0'); // เช่น "25"
@@ -16,22 +10,26 @@ export function generateRunningNumber(lastNumber) {
   if (lastNumber && /^\d{7}$/.test(lastNumber)) {
     nextSeq = parseInt(lastNumber.slice(-3), 10) + 1;
   }
-  const seqStr = String(nextSeq).padStart(4, '0');                // เช่น "0002"
+  const seqStr = String(nextSeq).padStart(3, '0'); // 3 หลัก เช่น 001
 
-  return `${year}${month}${seqStr}`;                              // เช่น "25050002"
+  return `${year}${month}${seqStr}`; // เช่น "2505001"
 }
 
-/**
- * ดึงรหัสล่าสุดจาก Firestore แล้วคืนรหัสถัดไป
- * @returns {Promise<string>} รหัสถัดไป
- */
 export async function getNextRunningNumber() {
+  const now = new Date();
+  const prefix = `${String(now.getFullYear() % 100).padStart(2, '0')}${String(now.getMonth() + 1).padStart(2, '0')}`; // "2505"
+
   const q = query(
     collection(db, 'quotes'),
     orderBy('runningNumber', 'desc'),
-    limit(1)
+    limit(20)
   );
   const snap = await getDocs(q);
-  const lastNumber = snap.empty ? null : snap.docs[0].data().runningNumber;
+
+  // ✅ คัดกรองเฉพาะรหัสที่ขึ้นต้นด้วยเดือน/ปีปัจจุบัน
+  const last = snap.docs.find(d => d.data().runningNumber?.startsWith(prefix));
+
+  const lastNumber = last?.data().runningNumber || null;
+
   return generateRunningNumber(lastNumber);
 }

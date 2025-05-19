@@ -15,7 +15,7 @@ export default function QuotationFormPage() {
     license: '',
     province: '',
     vin: '',
-    warranty: '',
+    warranty: [],
     discount: '',
     deposit: '',
     remark: '',
@@ -39,7 +39,7 @@ export default function QuotationFormPage() {
       setBrands(brandSnap.docs.map(d => ({ id: d.id, ...d.data() })));
       setWarrantyList(warrantySnap.docs.map(d => ({ id: d.id, ...d.data() })));
       setServiceList(serviceSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-      setProvinces(['กรุงเทพมหานคร','ขอนแก่น','เชียงใหม่','นครราชสีมา','ภูเก็ต','ชลบุรี','อุบลราชธานี','เชียงราย']);
+      // setProvinces(['กรุงเทพมหานคร','ขอนแก่น','เชียงใหม่','นครราชสีมา','ภูเก็ต','ชลบุรี','อุบลราชธานี','เชียงราย']);
     };
     fetchData();
   }, []);
@@ -49,6 +49,20 @@ export default function QuotationFormPage() {
     getDocs(collection(db, 'brands', form.brand, 'models'))
       .then(snap => setModels(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
   }, [form.brand]);
+
+  useEffect(() => {
+  const fetchProvinces = async () => {
+    try {
+      const res = await fetch('/data/thai_provinces_77.json');
+      const data = await res.json();
+      setProvinces(data); // สมมุติว่าคุณมี useState ชื่อ setProvinces
+    } catch (err) {
+      console.error('เกิดข้อผิดพลาดในการโหลดจังหวัด', err);
+    }
+  };
+  fetchProvinces();
+}, []);
+
 
   // Calculate total price
   useEffect(() => {
@@ -88,6 +102,7 @@ export default function QuotationFormPage() {
         items,
         totalPrice,
         id_number,
+        runningNumber: id_number,
         createdAt: serverTimestamp(),
       });
 
@@ -255,7 +270,7 @@ export default function QuotationFormPage() {
                       name="year"
                       value={form.year}
                       onChange={handleChange}
-                      required
+                      // required
                       className="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="ปี ค.ศ."
                     />
@@ -277,11 +292,11 @@ export default function QuotationFormPage() {
                       name="province"
                       value={form.province}
                       onChange={handleChange}
-                      required
+                      // required
                       className="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">-- เลือกจังหวัด --</option>
-                      {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+                      {provinces.map((p, i) => (<option key={i} value={p}>{p}</option>))}
                     </select>
                   </div>
                   <div>
@@ -290,7 +305,7 @@ export default function QuotationFormPage() {
                       name="vin"
                       value={form.vin}
                       onChange={handleChange}
-                      required
+                      // required
                       className="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="VIN"
                     />
@@ -367,18 +382,32 @@ export default function QuotationFormPage() {
                   </div>
                 ))}
                 <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">เงื่อนไขรับประกัน</label>
-                  <select
-                    name="warranty"
-                    value={form.warranty}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">-- เลือกเงื่อนไข --</option>
-                    {warrantyList.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                  </select>
-                </div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">เงื่อนไขรับประกัน</label>
+  <div className="space-y-2">
+    {warrantyList.map(w => (
+      <label key={w.id} className="flex items-center space-x-2 text-sm">
+        <input
+          type="checkbox"
+          value={w.id}
+          checked={form.warranty.includes(w.id)}
+          onChange={(e) => {
+            const checked = e.target.checked;
+            const id = e.target.value;
+            setForm(prev => ({
+              ...prev,
+              warranty: checked
+                ? [...prev.warranty, id]
+                : prev.warranty.filter(wid => wid !== id)
+            }));
+          }}
+          className="text-blue-600 rounded"
+        />
+        <span>{w.name}</span>
+      </label>
+    ))}
+  </div>
+</div>
+
               </div>
             </section>
 

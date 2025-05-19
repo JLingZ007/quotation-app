@@ -124,7 +124,7 @@ export default function HistoryPage() {
               <th className="border px-4 py-2 text-left">รถ</th>
               <th className="border px-4 py-2 text-left">ทะเบียน</th>
               <th className="border px-4 py-2 text-left">บริการ</th>
-              <th className="border px-4 py-2 text-left">วันที่สร้าง</th>
+              <th className="border px-4 py-2 text-left">วันที่สร้างรายการ</th>
             </tr>
           </thead>
           <tbody>

@@ -26,24 +26,24 @@ export default function HomePage() {
             <span>สร้างใบเสนอราคา</span>
           </button>
 
-          <button 
+          {/* <button 
             onClick={() => router.push('/receipt')} 
             className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white px-6 py-4 w-full rounded-lg transition shadow-md group"
           >
             <Receipt className="w-5 h-5 mr-3 group-hover:animate-pulse" />
             <span>สร้างใบเสร็จ</span>
-          </button>
+          </button> */}
         </div>
 
         {/* Secondary Actions */}
-        <div className="grid grid-cols-3 gap-4">
-          <button 
+        <div className="grid grid-cols-2 gap-4">
+          {/* <button 
             onClick={() => router.push('/history')} 
             className="flex flex-col items-center justify-center bg-gray-100 hover:bg-gray-200 px-4 py-4 rounded-lg transition text-gray-700 hover:text-blue-700"
           >
             <History className="w-6 h-6 mb-2" />
             <span className="text-sm">ประวัติ</span>
-          </button>
+          </button> */}
           
           <button 
             onClick={() => router.push('/content-list')} 
