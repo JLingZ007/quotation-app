@@ -414,6 +414,7 @@ const QuotationPDF = ({ form, services = [], brand, model, remark, warranty = []
           <View style={styles.tableHeader}>
             <View style={[styles.tableCell, styles.ordinalCell]}>
               <Text>ลำดับ</Text>
+              <Text>(No.)</Text>
             </View>
             <View style={[styles.tableCell, styles.descriptionCell]}>
               <Text>รายละเอียด</Text>
