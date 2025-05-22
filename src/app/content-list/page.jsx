@@ -4,9 +4,9 @@ import { db } from '../lib/firebase';
 import { collection, getDocs, getDoc, doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  Search, Filter, Loader2, FileText, Receipt, 
-  ChevronDown, ChevronUp, ArrowLeft, Calendar, MapPin 
+import {
+    Search, Filter, Loader2, FileText, Receipt,
+    ChevronDown, ChevronUp, ArrowLeft, Calendar, MapPin, Pencil
 } from 'lucide-react';
 
 export default function ContentListPage() {
@@ -178,7 +178,7 @@ export default function ContentListPage() {
                             <h1 className="text-2xl font-bold text-gray-800">รายการทั้งหมด</h1>
                             <p className="text-gray-500 mt-1">ระบบบริหารจัดการใบเสนอราคาและใบเสร็จ</p>
                         </div>
-                        
+
                         <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors mb-4 md:mb-0">
                             <ArrowLeft className="w-5 h-5 mr-1" /> กลับไปยังรายการ
                         </Link>
@@ -291,6 +291,11 @@ export default function ContentListPage() {
                                                     <span>พิมพ์</span>
                                                 </div>
                                             </th>
+                                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                <div className="flex items-center">
+                                                    <span>แก้ไข</span>
+                                                </div>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -374,8 +379,41 @@ export default function ContentListPage() {
                                                             <Receipt className="w-3.5 h-3.5 mr-1" />
                                                             ใบเสร็จ
                                                         </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                router.push(`/invoice/${item.id}`);
+                                                            }}
+                                                            className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-green-200 rounded-md transition-colors flex items-center cursor-pointer"
+                                                        >
+                                                            <Receipt className="w-3.5 h-3.5 mr-1" />
+                                                            ใบแจ้งหนี้
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                router.push(`/vehicle-receive/${item.id}`);
+                                                            }}
+                                                            className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-green-200 rounded-md transition-colors flex items-center cursor-pointer"
+                                                        >
+                                                            <Receipt className="w-3.5 h-3.5 mr-1" />
+                                                            ใบรับรถ
+                                                        </button>
                                                     </div>
                                                 </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            router.push(`/editForm/${item.id}`);
+                                                        }}
+                                                        className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors flex items-center text-sm"
+                                                    >
+                                                        <Pencil className="w-4 h-4 mr-1" />
+                                                        แก้ไข
+                                                    </button>
+                                                </td>
+
                                             </tr>
                                         ))}
                                     </tbody>

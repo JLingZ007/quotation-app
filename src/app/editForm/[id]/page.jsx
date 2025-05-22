@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { db } from '../lib/firebase';
+import { db } from '../../lib/firebase';
 import { useParams, useRouter } from 'next/navigation';
-import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
-import { getNextRunningNumber } from '../utils/generateRunningNumber';
+import { collection, getDocs, addDoc, getDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
-export default function QuotationFormPage() {
+export default function QuotationEditFormPage() {
   const router = useRouter();
   const params = useParams();
+  const quoteId = params.id; // ✅ ดึงค่าจาก dynamic route
   const [form, setForm] = useState({
     customerName: '',
     phone: '',
@@ -34,23 +34,57 @@ export default function QuotationFormPage() {
   const [items, setItems] = useState([{ serviceId: '', unitPrice: '' }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [subtotalPrice, setsubTotalPrice] = useState(0);
-
 
   useEffect(() => {
-    const fetchData = async () => {
+  const loadData = async () => {
+    if (!quoteId) return;
+
+    const docSnap = await getDoc(doc(db, 'quotes', quoteId));
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      setForm({
+        customerName: data.customerName || '',
+        phone: data.phone || '',
+        address: data.address || '',
+        tax_number: data.tax_number || '',
+        mileage: data.mileage || '',
+        brand: data.brand || '',
+        model: data.model || '',
+        year: data.year || '',
+        license: data.license || '',
+        province: data.province || '',
+        vin: data.vin || '',
+        warranty: data.warranty || [],
+        discount: data.discount || '',
+        deposit: data.deposit || '',
+        remark: data.remark || '',
+      });
+      setItems(data.items || [{ serviceId: '', unitPrice: '' }]);
+    }
+  };
+  loadData();
+}, [quoteId]);
+
+  useEffect(() => {
+  const fetchInitialData = async () => {
+    try {
       const [brandSnap, warrantySnap, serviceSnap] = await Promise.all([
         getDocs(collection(db, 'brands')),
         getDocs(collection(db, 'warrantyConditions')),
         getDocs(collection(db, 'services')),
       ]);
+
       setBrands(brandSnap.docs.map(d => ({ id: d.id, ...d.data() })));
       setWarrantyList(warrantySnap.docs.map(d => ({ id: d.id, ...d.data() })));
       setServiceList(serviceSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-      // setProvinces(['กรุงเทพมหานคร','ขอนแก่น','เชียงใหม่','นครราชสีมา','ภูเก็ต','ชลบุรี','อุบลราชธานี','เชียงราย']);
-    };
-    fetchData();
-  }, []);
+    } catch (error) {
+      console.error('โหลด brands/services/warranty ไม่สำเร็จ', error);
+    }
+  };
+
+  fetchInitialData();
+}, []);
+
 
   useEffect(() => {
     if (!form.brand) return setModels([]);
@@ -59,45 +93,39 @@ export default function QuotationFormPage() {
   }, [form.brand]);
 
   useEffect(() => {
-    const fetchProvinces = async () => {
-      try {
-        const res = await fetch('/data/thai_provinces_77.json');
-        const data = await res.json();
-        setProvinces(data); // สมมุติว่าคุณมี useState ชื่อ setProvinces
-      } catch (err) {
-        console.error('เกิดข้อผิดพลาดในการโหลดจังหวัด', err);
-      }
-    };
-    fetchProvinces();
-  }, []);
+  const fetchProvinces = async () => {
+    try {
+      const res = await fetch('/data/thai_provinces_77.json');
+      const data = await res.json();
+      setProvinces(data); // สมมุติว่าคุณมี useState ชื่อ setProvinces
+    } catch (err) {
+      console.error('เกิดข้อผิดพลาดในการโหลดจังหวัด', err);
+    }
+  };
+  fetchProvinces();
+}, []);
 
 
   // Calculate total price
   useEffect(() => {
-    const itemTotal = items.reduce((sum, item) => sum + (parseInt(item.unitPrice) || 0), 0);
-    const discount = parseInt(form.discount) || 0;
-    setTotalPrice(Math.max(0, itemTotal));
-  }, [items, form.discount]);
+  const itemTotal = items.reduce((sum, item) => sum + (parseInt(item.unitPrice) || 0), 0);
+  const discount = parseInt(form.discount) || 0;
+  setTotalPrice(Math.max(0, itemTotal - discount));
+}, [items, form.discount]);
 
-  // Calculate total price
-  useEffect(() => {
-    const itemTotal = items.reduce((sum, item) => sum + (parseInt(item.unitPrice) || 0), 0);
-    const discount = parseInt(form.discount) || 0;
-    setsubTotalPrice(Math.max(0, itemTotal - discount));
-  }, [items, form.discount]);
 
   const handleChange = e => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
-
+  
   const handleItemChange = (i, f, v) => {
     const arr = [...items];
     arr[i][f] = v;
     setItems(arr);
   };
-
+  
   const addItem = () => setItems(prev => [...prev, { serviceId: '', unitPrice: '' }]);
-
+  
   const removeItem = (index) => {
     if (items.length > 1) {
       setItems(items.filter((_, i) => i !== index));
@@ -105,53 +133,50 @@ export default function QuotationFormPage() {
   };
 
   const handleSubmit = async e => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      // สร้างรหัส id_number อัตโนมัติ (YYMMNNN)
-      const id_number = await getNextRunningNumber();
+  e.preventDefault();
+  setIsSubmitting(true);
+  try {
+    if (!quoteId) throw new Error("ไม่พบ ID");
 
-      // บันทึกใบเสนอราคาพร้อม id_number
-      await addDoc(collection(db, 'quotes'), {
-        ...form,
-        items,
-        totalPrice,
-        id_number,
-        runningNumber: id_number,
-        createdAt: serverTimestamp(),
-      });
+    const itemTotal = items.reduce((sum, item) => sum + (parseInt(item.unitPrice) || 0), 0);
+    const discount = parseInt(form.discount) || 0;
+    const updatedTotalPrice = Math.max(0, itemTotal);
 
-      // แสดงแจ้งเตือนสำเร็จ
-      const el = document.getElementById('notification');
-      el.textContent = `✅ บันทึกสำเร็จ (ID: ${id_number})`;
-      el.className = 'fixed top-4 right-4 flex items-center px-4 py-3 bg-green-100 text-green-700 rounded-lg shadow-lg z-50';
-      setTimeout(() => el.classList.add('opacity-0'), 4000);
+    await updateDoc(doc(db, 'quotes', quoteId), {
+      ...form,
+      items,
+      totalPrice: updatedTotalPrice,
+      updatedAt: serverTimestamp(),
+    });
 
-      // รีเซ็ตฟอร์ม
-      setForm({ customerName: '', phone: '', address: '', tax_number: '', brand: '', model: '', year: '', license: '', province: '', vin: '', mileage: '', warranty: '', discount: '', deposit: '', remark: '' });
-      setItems([{ serviceId: '', unitPrice: '' }]);
-      router.push('/');
-    } catch (err) {
-      console.error(err);
-      const el = document.getElementById('notification');
-      el.textContent = '❌ เกิดข้อผิดพลาด กรุณาลองใหม่';
-      el.className = 'fixed top-4 right-4 flex items-center px-4 py-3 bg-red-100 text-red-700 rounded-lg shadow-lg z-50';
-      setTimeout(() => el.classList.add('opacity-0'), 4000);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    const el = document.getElementById('notification');
+    el.textContent = `✅ แก้ไขใบเสนอราคาสำเร็จ`;
+    el.className = 'fixed top-4 right-4 flex items-center px-4 py-3 bg-green-100 text-green-700 rounded-lg shadow-lg z-50';
+    setTimeout(() => el.classList.add('opacity-0'), 4000);
+
+    router.push('/content-list');
+  } catch (err) {
+    console.error(err);
+    const el = document.getElementById('notification');
+    el.textContent = '❌ เกิดข้อผิดพลาด กรุณาลองใหม่';
+    el.className = 'fixed top-4 right-4 flex items-center px-4 py-3 bg-red-100 text-red-700 rounded-lg shadow-lg z-50';
+    setTimeout(() => el.classList.add('opacity-0'), 4000);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       {/* Notification */}
-      <div
-        id="notification"
+      <div 
+        id="notification" 
         className="hidden fixed top-4 right-4 items-center px-4 py-3 rounded-lg shadow transition-all duration-300 z-50"
         role="alert"
       >
       </div>
-
+      
       <div className="max-w-4xl mx-auto">
         <div className="bg-white shadow-lg rounded-xl overflow-hidden mb-8">
           <div className="bg-blue-600 px-6 py-4">
@@ -159,10 +184,10 @@ export default function QuotationFormPage() {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              สร้างใบเสนอราคา
+              แก้ไขใบเสนอราคา
             </h1>
           </div>
-
+          
           <form onSubmit={handleSubmit} className="p-6">
             {/* Progress Steps */}
             <div className="flex justify-between items-center mb-8">
@@ -266,7 +291,6 @@ export default function QuotationFormPage() {
                     />
                   </div>
                 </div>
-
               </div>
             </section>
 
@@ -283,7 +307,7 @@ export default function QuotationFormPage() {
               <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">ยี่ห้อ *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">ยี่ห้อ</label>
                     <select
                       name="brand"
                       value={form.brand}
@@ -296,7 +320,7 @@ export default function QuotationFormPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">รุ่น *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">รุ่น</label>
                     <select
                       name="model"
                       value={form.model}
@@ -321,7 +345,7 @@ export default function QuotationFormPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">ทะเบียน *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">ทะเบียน</label>
                     <input
                       name="license"
                       value={form.license}
@@ -350,6 +374,7 @@ export default function QuotationFormPage() {
                       name="vin"
                       value={form.vin}
                       onChange={handleChange}
+                      // required
                       className="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="VIN"
                     />
@@ -382,7 +407,7 @@ export default function QuotationFormPage() {
                 {items.map((it, i) => (
                   <div key={i} className="flex flex-wrap md:flex-nowrap items-end gap-4 mb-4 pb-4 border-b border-gray-200 last:border-b-0 last:mb-0 last:pb-0">
                     <div className="w-full md:w-1/2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">บริการ *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">บริการ</label>
                       <select
                         value={it.serviceId}
                         onChange={e => handleItemChange(i, 'serviceId', e.target.value)}
@@ -394,7 +419,7 @@ export default function QuotationFormPage() {
                       </select>
                     </div>
                     <div className="w-full md:w-1/3">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">ราคาต่อหน่วย *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ราคาต่อหน่วย</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <span className="text-gray-500">฿</span>
@@ -436,31 +461,31 @@ export default function QuotationFormPage() {
                   </div>
                 ))}
                 <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">เงื่อนไขรับประกัน</label>
-                  <div className="space-y-2">
-                    {warrantyList.map(w => (
-                      <label key={w.id} className="flex items-center space-x-2 text-sm">
-                        <input
-                          type="checkbox"
-                          value={w.id}
-                          checked={form.warranty.includes(w.id)}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            const id = e.target.value;
-                            setForm(prev => ({
-                              ...prev,
-                              warranty: checked
-                                ? [...prev.warranty, id]
-                                : prev.warranty.filter(wid => wid !== id)
-                            }));
-                          }}
-                          className="text-blue-600 rounded"
-                        />
-                        <span>{w.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">เงื่อนไขรับประกัน</label>
+  <div className="space-y-2">
+    {warrantyList.map(w => (
+      <label key={w.id} className="flex items-center space-x-2 text-sm">
+        <input
+          type="checkbox"
+          value={w.id}
+          checked={form.warranty.includes(w.id)}
+          onChange={(e) => {
+            const checked = e.target.checked;
+            const id = e.target.value;
+            setForm(prev => ({
+              ...prev,
+              warranty: checked
+                ? [...prev.warranty, id]
+                : prev.warranty.filter(wid => wid !== id)
+            }));
+          }}
+          className="text-blue-600 rounded"
+        />
+        <span>{w.name}</span>
+      </label>
+    ))}
+  </div>
+</div>
 
               </div>
             </section>
@@ -510,7 +535,7 @@ export default function QuotationFormPage() {
                     </div>
                   </div>
                 </div>
-
+                
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-1">หมายเหตุ</label>
                   <textarea
@@ -522,7 +547,7 @@ export default function QuotationFormPage() {
                     placeholder="รายละเอียดเพิ่มเติม..."
                   />
                 </div>
-
+                
                 {/* Price Summary */}
                 <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
                   <h3 className="font-medium text-blue-800 mb-2">สรุปราคา</h3>
@@ -538,7 +563,7 @@ export default function QuotationFormPage() {
                   )}
                   <div className="flex justify-between py-1 border-t border-blue-200 mt-2 pt-2">
                     <span className="font-medium text-gray-800">ราคาสุทธิ:</span>
-                    <span className="font-bold text-blue-700">฿ {subtotalPrice.toLocaleString()}</span>
+                    <span className="font-bold text-blue-700">฿ {totalPrice.toLocaleString()}</span>
                   </div>
                   {form.deposit && (
                     <div className="flex justify-between py-1 mt-2">
@@ -569,14 +594,14 @@ export default function QuotationFormPage() {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                     </svg>
-                    บันทึกใบเสนอราคา
+                    อัพเดทใบเสนอราคา
                   </>
                 )}
               </button>
             </div>
 
             {/* Print Preview Button */}
-            {items.some(item => item.serviceId && item.unitPrice) && (
+            {/* {items.some(item => item.serviceId && item.unitPrice) && (
               <div className="text-center mt-4">
                 <button
                   type="button"
@@ -588,10 +613,10 @@ export default function QuotationFormPage() {
                   พรีวิวใบเสนอราคา
                 </button>
               </div>
-            )}
+            )} */}
           </form>
         </div>
-
+        
         {/* Tips & Help */}
         <div className="bg-white shadow-md rounded-lg p-5 mb-8">
           <h3 className="text-lg font-medium text-gray-800 mb-3 flex items-center">

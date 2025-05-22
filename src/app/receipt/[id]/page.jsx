@@ -7,6 +7,8 @@ import { Loader2, ArrowLeft, Printer, Download } from 'lucide-react';
 import Link from 'next/link';
 import { numberWithCommas } from '../../utils/number-format';
 import { numberToThaiText } from '../../utils/numberToThaiText'; // ปรับ path ให้ตรง
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import ReceiptPDF from '../../components/pdf/ReceiptPDF';
 
 
 
@@ -123,44 +125,17 @@ export default function ContentDetailPage() {
         window.print();
     };
 
-    const handleSavePDF = async () => {
-        try {
-            // Dynamic import html2pdf.js only on client side
-            const html2pdf = (await import('html2pdf.js')).default;
-            const element = document.getElementById('pdf-content');
 
-            const opt = {
-                margin: [10, 10, 10, 10],
-                filename: `${docType}-${docNumber}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
 
-            // Generate PDF
-            html2pdf().from(element).set(opt).save();
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF กรุณาลองใหม่อีกครั้ง');
-        }
-    };
-
-    // Calculate totals
-    const calculateSubtotal = () => {
-        if (!services || services.length === 0) {
-            // ถ้าไม่มีบริการ ให้ใช้ totalPrice จาก content
-            return content?.totalPrice ? parseFloat(content.totalPrice) : 0;
-        }
-
-        return services.reduce((total, service) => {
-            return total + (parseFloat(service.price) || 0) * (service.quantity || 1);
-        }, 0);
-    };
-
-    const subtotal = calculateSubtotal();
     const discount = content?.discount ? parseFloat(content.discount) : 0;
+    const totalPrice = content?.totalPrice ? parseFloat(content.totalPrice) : 0;
     const deposit = content?.deposit ? parseFloat(content.deposit) : 0;
-    const grandTotal = subtotal - discount ;
+    const grandTotal = totalPrice - discount;
+
+    {/* คำนวณ Total + VAT 7% */ }
+
+    const totalBeforeVat = (grandTotal / 1.07).toFixed(2);
+    const Vat = (grandTotal - totalBeforeVat).toFixed(2);
 
     if (loading) {
         return (
@@ -199,16 +174,37 @@ export default function ContentDetailPage() {
                     <div className="flex space-x-2">
                         <button
                             onClick={handlePrint}
-                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
                         >
                             <Printer className="w-4 h-4 mr-2" /> พิมพ์
                         </button>
-                        <button
-                            onClick={handleSavePDF}
-                            className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                        <PDFDownloadLink
+                            document={
+                                <ReceiptPDF
+                                    form={content}
+                                    services={services}
+                                    grandTotal={grandTotal}
+                                    brand={brand}
+                                    model={model}
+                                    warranty={warranty}
+                                    deposit={deposit}
+                                    discount={discount}
+                                    totalPrice={totalPrice}
+                                    docNumber={docNumber}
+
+                                />
+                            }
+                            fileName={`ใบเสร็จ_${params.id}.pdf`}
+                            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                         >
-                            <Download className="w-4 h-4 mr-2" /> บันทึก PDF
-                        </button>
+
+                            {({ loading }) => (
+                                <>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    {loading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลดใบเสร็จ'}
+                                </>
+                            )}
+                        </PDFDownloadLink>
                     </div>
                 </div>
             </div>
@@ -241,7 +237,7 @@ export default function ContentDetailPage() {
                             </div>
                         </div>
                         <div className="mt-3 md:mt-0 text-right">
-                            <h2 className="text-lg font-bold">ใบเสร็จ</h2>
+                            <h2 className="text-lg font-bold">ใบเสร็จรับเงิน</h2>
                             <p className="text-sm mt-1">เลขที่: {docNumber}</p>
                             <p className="text-sm">วันที่: {content.createdAt?.toDate ?
                                 content.createdAt.toDate().toLocaleDateString('th-TH') :
@@ -254,19 +250,21 @@ export default function ContentDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border-b">
                     <div>
                         <h3 className="font-medium text-sm mb-1">ข้อมูลลูกค้า</h3>
-                        <p className="font-semibold text-sm">{content.customerName || '-'}</p>
+                        <p className="font-semibold text-sm">ชื่อลูกค้า : {content.customerName || '-'}</p>
                         <p className="text-sm">เบอร์โทร : {content.phone || '-'}</p>
-                        
+                        <p className="text-sm">ที่อยู่ : {content.address || '-'}</p>
+                        <p className="text-sm">เลขประจำตัวผู้เสียภาษี : {content.tax_number || '-'}</p>
+
                         {content.customerAddress && <p className="text-xs text-gray-600">{content.customerAddress}</p>}
                     </div>
                     <div>
                         <h3 className="font-medium text-sm mb-1">ข้อมูลรถ</h3>
                         <p className="text-sm">
-                            ข้อมูลรถยนต์ : {brand?.name || '-'} {model?.name || '-'}
+                            ข้อมูลรถยนต์ : {brand?.name || '-'} {model?.name || '-'} | ปีรถ : {content.year}
                         </p>
                         <p className="text-sm">เลขทะเบียน: {content.license || '-'} {content.province || '-'}</p>
                         {content.vin && <p className="text-sm">เลขตัวถัง (VIN) : {content.vin}</p>}
-                        {content.year && <p className="text-sm">ปีรถ : {content.year}</p>}
+                         <p className="text-sm">เลขไมล์: {content.mileage || '-'} กิโลเมตร</p>
                     </div>
                 </div>
 
@@ -277,11 +275,11 @@ export default function ContentDetailPage() {
                         <table className="min-w-full border">
                             <thead >
                                 <tr className="bg-gray-300">
-                                    <th className="border px-2 py-1 text-center w-18 text-xs">ลำดับ</th>
+                                    <th className="border px-2 py-1 text-center w-18 text-xs">ลำดับ<br />(No.)</th>
                                     <th className="border px-2 py-1 text-left text-xs">รายละเอียด<br />(Description)</th>
                                     <th className="border px-2 py-1 text-center w-16 text-xs">จำนวน<br />(Quantity)</th>
-                                    <th className="border px-2 py-1 text-right w-24 text-xs">ราคาต่อหน่วย</th>
-                                    <th className="border px-2 py-1 text-right w-24 text-xs">จำนวนเงิน</th>
+                                    <th className="border px-2 py-1 text-center w-24 text-xs">ราคาต่อหน่วย<br />(รวม VAT)</th>
+                                    <th className="border px-2 py-1 text-center w-24 text-xs">จำนวนเงิน<br />(รวม VAT)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -306,7 +304,7 @@ export default function ContentDetailPage() {
                                 )}
 
                                 {/* Empty rows to match the design */}
-                                {Array.from({ length: Math.max(0, 10 - services.length) }).map((_, index) => (
+                                {Array.from({ length: Math.max(0, 8 - services.length) }).map((_, index) => (
                                     <tr key={`empty-${index}`}>
                                         <td className="border px-2 py-1 text-sm">&nbsp;</td>
                                         <td className="border px-2 py-1"></td>
@@ -319,9 +317,22 @@ export default function ContentDetailPage() {
                                 {/* Additional note row */}
                                 <tr className='bg-gray-300'>
                                     <td className="border px-2 py-1 text-center font-medium text-sm ">ตัวอักษร</td>
-                                    <td colSpan="4" className="border px-2 py-1 text-sm">
+                                    <td colSpan="2" className="border px-2 py-1 text-sm">
                                         ({numberToThaiText(grandTotal)})
                                     </td>
+                                    <td colSpan="1" className="border px-2 py-1 text-sm">
+                                        ราคาก่อนรวม VAT
+                                    </td>
+                                    <td colSpan="1" className="border px-2 py-1 text-sm text-right">
+                                        {totalBeforeVat}
+                                    </td>
+                                </tr>
+                                <tr className='bg-gray-300'>
+                                    <td className="border px-2 py-1 text-center font-medium text-sm ">หมายเหตุ</td>
+                                    <td colSpan="4" className="border px-2 py-1 text-sm">
+                                        {content.remark}
+                                    </td>
+
                                 </tr>
                             </tbody>
                         </table>
@@ -360,14 +371,14 @@ export default function ContentDetailPage() {
                         <div className="w-full md:w-1/3 mt-3 md:mt-0">
                             <table className="min-w-full border">
                                 <tbody>
-                                    <tr>
+                                    {/* <tr>
                                         <td className="border px-2 py-1 text-left font-light text-xs ">
                                             ยอดรวม<br />TOTAL
                                         </td>
                                         <td className="border px-2 py-1 text-right font-medium text-xs">
-                                            {numberWithCommas(subtotal)}
+                                            {numberWithCommas(totalPrice)}
                                         </td>
-                                    </tr>
+                                    </tr> */}
                                     <tr>
                                         <td className="border px-2 py-1 text-left text-xs">
                                             ส่วนลด<br />DISCOUNT
@@ -376,14 +387,22 @@ export default function ContentDetailPage() {
                                             {numberWithCommas(discount)}
                                         </td>
                                     </tr>
-                                    {/* <tr>
+                                    <tr>
                                         <td className="border px-2 py-1 text-left text-xs">
-                                            มัดจำจ่าย<br />DEPOSIT
+                                            จำนวนเงินหลังหักส่วนลด<br />TOTAL AMOUNT AFTER DISCOUNT
                                         </td>
                                         <td className="border px-2 py-1 text-right text-xs">
-                                            {numberWithCommas(deposit)}
+                                            {numberWithCommas(totalPrice - discount)}
                                         </td>
-                                    </tr> */}
+                                    </tr>
+                                    <tr>
+                                        <td className="border px-2 py-1 text-left text-xs">
+                                            ภาษีมูลค่าเพิ่ม<br />VAT 7%
+                                        </td>
+                                        <td className="border px-2 py-1 text-right text-xs">
+                                            {numberWithCommas(Vat)}
+                                        </td>
+                                    </tr>
                                     <tr>
                                         <td className="border px-2 py-1 text-left font-lighttext-sm">
                                             ยอดรวมสุทธิ<br />GRAND TOTAL

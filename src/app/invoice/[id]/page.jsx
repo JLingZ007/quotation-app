@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { numberWithCommas } from '../../utils/number-format';
 import { numberToThaiText } from '../../utils/numberToThaiText'; // ปรับ path ให้ตรง
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import QuotationPDF from '../../components/pdf/QuotationPDF';
+import InvoicePDF from '../../components/pdf/InvoicePDF';
 
 
 
@@ -173,7 +173,7 @@ export default function ContentDetailPage() {
                         </button>
                         <PDFDownloadLink
                             document={
-                                <QuotationPDF
+                                <InvoicePDF
                                     form={content}
                                     services={services}
                                     grandTotal={grandTotal}
@@ -185,16 +185,15 @@ export default function ContentDetailPage() {
                                     totalPrice={totalPrice}
                                     docNumber={docNumber}
                                     remark={content.remark}
-                                    mileage={content.mileage}
                                 />
                             }
-                            fileName={`ใบเสนอราคา_${params.id}.pdf`}
+                            fileName={`ใบแจ้งหนี้_${params.id}.pdf`}
                             className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                         >
                             {({ loading }) => (
                                 <>
                                     <Download className="w-4 h-4 mr-2" />
-                                    {loading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลดใบเสนอราคา'}
+                                    {loading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลดใบแจ้งหนี้'}
                                 </>
                             )}
                         </PDFDownloadLink>
@@ -230,7 +229,7 @@ export default function ContentDetailPage() {
                             </div>
                         </div>
                         <div className="mt-3 md:mt-0 text-right">
-                            <h2 className="text-lg font-bold">{docType}</h2>
+                            <h2 className="text-lg font-bold">ใบแจ้งหนี้</h2>
                             <p className="text-sm mt-1">เลขที่: {docNumber}</p>
                             <p className="text-sm">วันที่: {content.createdAt?.toDate ?
                                 content.createdAt.toDate().toLocaleDateString('th-TH') :
@@ -243,19 +242,19 @@ export default function ContentDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border-b">
                     <div>
                         <h3 className="font-medium text-sm mb-1">ข้อมูลลูกค้า</h3>
-                        <p className="font-semibold text-sm">ชื่อลูกค้า: {content.customerName || '-'}</p>
-                        <p className="text-sm">เบอร์โทร: {content.phone || '-'}</p>
+                        <p className="font-semibold text-sm">{content.customerName || '-'}</p>
+                        <p className="text-sm">เบอร์โทร : {content.phone || '-'}</p>
 
                         {content.customerAddress && <p className="text-xs text-gray-600">{content.customerAddress}</p>}
                     </div>
                     <div>
                         <h3 className="font-medium text-sm mb-1">ข้อมูลรถ</h3>
                         <p className="text-sm">
-                            ข้อมูลรถยนต์ : {brand?.name || '-'} {model?.name || '-'} | ปีรถ : {content.year || ''}
+                            ข้อมูลรถยนต์ : {brand?.name || '-'} {model?.name || '-'} | ปีรถ : {content.year}
                         </p>
                         <p className="text-sm">เลขทะเบียน: {content.license || '-'} {content.province || '-'}</p>
-                        {content.vin && <p className="text-sm">เลขตัวถัง (VIN) : {content.vin || '-'}</p>}
-                        <p className="text-sm">เลขไมล์: {content.mileage || '-'} กิโลเมตร </p>
+                        {content.vin && <p className="text-sm">เลขตัวถัง (VIN) : {content.vin}</p>}
+                        {content.year && <p className="text-sm"></p>}
                     </div>
                 </div>
 
@@ -266,7 +265,7 @@ export default function ContentDetailPage() {
                         <table className="min-w-full border">
                             <thead >
                                 <tr className="bg-gray-300">
-                                    <th className="border px-2 py-1 text-center w-18 text-xs">ลำดับ<br />(No.)</th>
+                                    <th className="border px-2 py-1 text-center w-18 text-xs">ลำดับ</th>
                                     <th className="border px-2 py-1 text-left text-xs">รายละเอียด<br />(Description)</th>
                                     <th className="border px-2 py-1 text-center w-16 text-xs">จำนวน<br />(Quantity)</th>
                                     <th className="border px-2 py-1 text-right w-24 text-xs">ราคาต่อหน่วย</th>
