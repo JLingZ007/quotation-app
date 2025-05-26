@@ -18,8 +18,8 @@ Font.register({
 });
 
 Font.register({
-    family: 'THSarabunNew-Italic',
-    src: '/fonts/THSarabunNew Italic.ttf',
+  family: 'THSarabunNew-Italic',
+  src: '/fonts/THSarabunNew Italic.ttf',
 });
 
 const styles = StyleSheet.create({

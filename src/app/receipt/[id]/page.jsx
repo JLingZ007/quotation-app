@@ -360,7 +360,7 @@ export default function ContentDetailPage() {
                                         </p>
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-gray-400 italic">ไม่มีข้อมูลเงื่อนไขการรับประกัน</p>
+                                    <p className="text-xs text-gray-400 ">ไม่มีข้อมูลเงื่อนไขการรับประกัน</p>
                                 )}
 
                             </div>

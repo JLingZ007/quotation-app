@@ -526,7 +526,7 @@ const InvoicePDF = ({ form, services = [], brand, model, remark, warranty = [], 
                   </Text>
                 </View>
               ) : (
-                <Text style={[styles.smallText, { fontStyle: 'italic', color: '#666' }]}>
+                <Text style={[styles.smallText, {  color: '#666' }]}>
                   ไม่มีข้อมูลเงื่อนไขการรับประกัน
                 </Text>
               )}
