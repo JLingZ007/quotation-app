@@ -6,6 +6,8 @@ import {
     getDocs,
     doc,
     setDoc,
+    deleteDoc,
+    updateDoc,
     query,
 } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -19,7 +21,11 @@ import {
     Shield, 
     Wrench, 
     FileText,
-    ArrowLeft 
+    ArrowLeft,
+    Settings,
+    Edit2,
+    Trash2,
+    X
 } from 'lucide-react';
 
 export default function AddDataPage() {
@@ -41,11 +47,21 @@ export default function AddDataPage() {
     const [newWarranty, setNewWarranty] = useState('');
     const [newService, setNewService] = useState('');
 
+    // State for editing items
+    const [editItem, setEditItem] = useState({ id: '', name: '', type: '' });
+    const [showEditModal, setShowEditModal] = useState(false);
+
     // State for form modal controls
     const [showBrandForm, setShowBrandForm] = useState(false);
     const [showModelForm, setShowModelForm] = useState(false);
     const [showWarrantyForm, setShowWarrantyForm] = useState(false);
     const [showServiceForm, setShowServiceForm] = useState(false);
+    
+    // State for manage modal controls
+    const [showBrandManage, setShowBrandManage] = useState(false);
+    const [showModelManage, setShowModelManage] = useState(false);
+    const [showWarrantyManage, setShowWarrantyManage] = useState(false);
+    const [showServiceManage, setShowServiceManage] = useState(false);
     
     // State for form submission and feedback
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -166,6 +182,108 @@ export default function AddDataPage() {
         }
     };
 
+    // Edit item
+    const handleEdit = (item, type) => {
+        setEditItem({ id: item.id, name: item.name, type });
+        setShowEditModal(true);
+    };
+
+    // Save edited item
+    const handleSaveEdit = async (e) => {
+        e.preventDefault();
+        if (!editItem.name.trim()) return;
+
+        try {
+            let docRef;
+            switch (editItem.type) {
+                case 'brand':
+                    docRef = doc(db, 'brands', editItem.id);
+                    await updateDoc(docRef, { name: editItem.name.trim() });
+                    setBrands(brands.map(item => 
+                        item.id === editItem.id ? { ...item, name: editItem.name.trim() } : item
+                    ));
+                    break;
+                case 'model':
+                    docRef = doc(db, 'brands', selectedBrand, 'models', editItem.id);
+                    await updateDoc(docRef, { name: editItem.name.trim() });
+                    setModels(models.map(item => 
+                        item.id === editItem.id ? { ...item, name: editItem.name.trim() } : item
+                    ));
+                    break;
+                case 'warranty':
+                    docRef = doc(db, 'warrantyConditions', editItem.id);
+                    await updateDoc(docRef, { name: editItem.name.trim() });
+                    setWarrantyList(warrantyList.map(item => 
+                        item.id === editItem.id ? { ...item, name: editItem.name.trim() } : item
+                    ));
+                    break;
+                case 'service':
+                    docRef = doc(db, 'services', editItem.id);
+                    await updateDoc(docRef, { name: editItem.name.trim() });
+                    setServiceList(serviceList.map(item => 
+                        item.id === editItem.id ? { ...item, name: editItem.name.trim() } : item
+                    ));
+                    break;
+            }
+            
+            setShowEditModal(false);
+            setEditItem({ id: '', name: '', type: '' });
+            showFeedback("แก้ไขข้อมูลสำเร็จ");
+        } catch (error) {
+            console.error("Error updating item:", error);
+            showFeedback("ไม่สามารถแก้ไขข้อมูลได้", "error");
+        }
+    };
+
+    // Delete item
+    const handleDelete = async (item, type) => {
+        if (!confirm(`คุณแน่ใจหรือไม่ที่จะลบ "${item.name}"?`)) return;
+
+        try {
+            let docRef;
+            switch (type) {
+                case 'brand':
+                    docRef = doc(db, 'brands', item.id);
+                    await deleteDoc(docRef);
+                    setBrands(brands.filter(brand => brand.id !== item.id));
+                    if (selectedBrand === item.id) {
+                        setSelectedBrand('');
+                        setSelectedModel('');
+                    }
+                    break;
+                case 'model':
+                    docRef = doc(db, 'brands', selectedBrand, 'models', item.id);
+                    await deleteDoc(docRef);
+                    setModels(models.filter(model => model.id !== item.id));
+                    if (selectedModel === item.id) {
+                        setSelectedModel('');
+                    }
+                    break;
+                case 'warranty':
+                    docRef = doc(db, 'warrantyConditions', item.id);
+                    await deleteDoc(docRef);
+                    setWarrantyList(warrantyList.filter(warranty => warranty.id !== item.id));
+                    if (selectedWarranty === item.id) {
+                        setSelectedWarranty('');
+                    }
+                    break;
+                case 'service':
+                    docRef = doc(db, 'services', item.id);
+                    await deleteDoc(docRef);
+                    setServiceList(serviceList.filter(service => service.id !== item.id));
+                    if (selectedService === item.id) {
+                        setSelectedService('');
+                    }
+                    break;
+            }
+            
+            showFeedback("ลบข้อมูลสำเร็จ");
+        } catch (error) {
+            console.error("Error deleting item:", error);
+            showFeedback("ไม่สามารถลบข้อมูลได้", "error");
+        }
+    };
+
     // Submit form data
     const handleSubmit = async () => {
         if (!selectedBrand || !selectedModel || !selectedWarranty || !selectedService) {
@@ -237,6 +355,93 @@ export default function AddDataPage() {
         );
     };
 
+    // Render manage modal for editing/deleting items
+    const renderManageModal = (title, items, type, isOpen, setIsOpen) => {
+        if (!isOpen) return null;
+        
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-medium">{title}</h3>
+                        <button
+                            onClick={() => setIsOpen(false)}
+                            className="text-gray-400 hover:text-gray-600"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        {items.length === 0 ? (
+                            <p className="text-gray-500 text-center py-4">ไม่มีข้อมูล</p>
+                        ) : (
+                            items.map(item => (
+                                <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                                    <span className="text-gray-800">{item.name}</span>
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={() => handleEdit(item, type)}
+                                            className="p-1.5 text-blue-600 hover:bg-blue-100 rounded"
+                                            title="แก้ไข"
+                                        >
+                                            <Edit2 className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(item, type)}
+                                            className="p-1.5 text-red-600 hover:bg-red-100 rounded"
+                                            title="ลบ"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Render edit modal
+    const renderEditModal = () => {
+        if (!showEditModal) return null;
+        
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                    <h3 className="text-lg font-medium mb-4">แก้ไขข้อมูล</h3>
+                    <form onSubmit={handleSaveEdit}>
+                        <input
+                            type="text"
+                            value={editItem.name}
+                            onChange={(e) => setEditItem({ ...editItem, name: e.target.value })}
+                            className="w-full p-2 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="กรอกข้อมูล"
+                            autoFocus
+                        />
+                        <div className="flex justify-end space-x-2">
+                            <button
+                                type="button"
+                                onClick={() => setShowEditModal(false)}
+                                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                                บันทึก
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-8">
@@ -283,6 +488,14 @@ export default function AddDataPage() {
                             >
                                 <PlusCircle className="h-5 w-5" />
                             </button>
+                            <button 
+                                type="button"
+                                onClick={() => setShowBrandManage(true)}
+                                className="ml-2 flex items-center justify-center p-3 bg-gray-100 border border-gray-300 rounded text-gray-700 hover:bg-gray-200 focus:outline-none"
+                                title="จัดการยี่ห้อรถ"
+                            >
+                                <Settings className="h-5 w-5" />
+                            </button>
                         </div>
                     </div>
 
@@ -315,6 +528,15 @@ export default function AddDataPage() {
                                 title="เพิ่มรุ่นใหม่"
                             >
                                 <PlusCircle className="h-5 w-5" />
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={() => setShowModelManage(true)}
+                                className="ml-2 flex items-center justify-center p-3 bg-gray-100 border border-gray-300 rounded text-gray-700 hover:bg-gray-200 focus:outline-none"
+                                disabled={!selectedBrand}
+                                title="จัดการรุ่นรถ"
+                            >
+                                <Settings className="h-5 w-5" />
                             </button>
                         </div>
                         {!selectedBrand && (
@@ -350,6 +572,14 @@ export default function AddDataPage() {
                             >
                                 <PlusCircle className="h-5 w-5" />
                             </button>
+                            <button 
+                                type="button"
+                                onClick={() => setShowWarrantyManage(true)}
+                                className="ml-2 flex items-center justify-center p-3 bg-gray-100 border border-gray-300 rounded text-gray-700 hover:bg-gray-200 focus:outline-none"
+                                title="จัดการเงื่อนไขการรับประกัน"
+                            >
+                                <Settings className="h-5 w-5" />
+                            </button>
                         </div>
                     </div>
 
@@ -381,16 +611,43 @@ export default function AddDataPage() {
                             >
                                 <PlusCircle className="h-5 w-5" />
                             </button>
+                            <button 
+                                type="button"
+                                onClick={() => setShowServiceManage(true)}
+                                className="ml-2 flex items-center justify-center p-3 bg-gray-100 border border-gray-300 rounded text-gray-700 hover:bg-gray-200 focus:outline-none"
+                                title="จัดการบริการ"
+                            >
+                                <Settings className="h-5 w-5" />
+                            </button>
                         </div>
                     </div>
 
-                    {/* back */}
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                        <button >
-                            <Link href="/" className="mt-4 inline-flex items-center text-blue-600 hover:underline">
-                                <ArrowLeft className="w-4 h-4 mr-1" /> กลับไปยังหน้าหลัก
-                            </Link>
+                    {/* Submit button */}
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                        <button
+                            onClick={handleSubmit}
+                            disabled={isSubmitting || !selectedBrand || !selectedModel || !selectedWarranty || !selectedService}
+                            className="w-full flex items-center justify-center py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    กำลังบันทึก...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="h-4 w-4 mr-2" />
+                                    บันทึกข้อมูล
+                                </>
+                            )}
                         </button>
+                    </div>
+
+                    {/* Back button */}
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                        <Link href="/" className="inline-flex items-center text-blue-600 hover:underline">
+                            <ArrowLeft className="w-4 h-4 mr-1" /> กลับไปยังหน้าหลัก
+                        </Link>
                     </div>
                 </div>
 
@@ -399,6 +656,15 @@ export default function AddDataPage() {
                 {renderFormModal("เพิ่มรุ่นรถใหม่", newModel, setNewModel, handleAddModel, showModelForm, setShowModelForm)}
                 {renderFormModal("เพิ่มเงื่อนไขการรับประกัน", newWarranty, setNewWarranty, handleAddWarranty, showWarrantyForm, setShowWarrantyForm)}
                 {renderFormModal("เพิ่มบริการใหม่", newService, setNewService, handleAddService, showServiceForm, setShowServiceForm)}
+
+                {/* Modal forms for managing items */}
+                {renderManageModal("จัดการยี่ห้อรถ", brands, 'brand', showBrandManage, setShowBrandManage)}
+                {renderManageModal("จัดการรุ่นรถ", models, 'model', showModelManage, setShowModelManage)}
+                {renderManageModal("จัดการเงื่อนไขการรับประกัน", warrantyList, 'warranty', showWarrantyManage, setShowWarrantyManage)}
+                {renderManageModal("จัดการบริการ", serviceList, 'service', showServiceManage, setShowServiceManage)}
+
+                {/* Edit modal */}
+                {renderEditModal()}
             </div>
         </div>
     );
