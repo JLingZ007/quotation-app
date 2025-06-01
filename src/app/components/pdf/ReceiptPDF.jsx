@@ -242,7 +242,7 @@ totalTextVatValue: {
     borderColor: '#000',
     padding: 8,
     backgroundColor: '#f9f9f9',
-    minHeight: 130, // เดิม 120
+    minHeight: 120, // เดิม 120
   },
 
   totalSection: {
@@ -310,7 +310,7 @@ totalTextVatValue: {
   signaturesSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: 6,
     gap: 10,
   },
 
@@ -319,7 +319,7 @@ totalTextVatValue: {
     borderWidth: 1,
     borderColor: '#000',
     padding: 6,
-    height: 73,
+    height: 70,
     justifyContent: 'space-between',
   },
 
@@ -537,7 +537,7 @@ const ReceiptPDF = ({ form, services = [], brand, model, remark, warranty = [], 
           {/* Warranty Terms */}
           <View style={styles.warrantySection}>
             <View style={styles.warrantyBox}>
-              <Text style={[styles.sectionTitle, { marginBottom: 5 }]}>เงื่อนไขการรับประกัน</Text>
+              <Text style={[styles.sectionTitle, { marginBottom: 2 }]}>เงื่อนไขการรับประกัน</Text>
 
               {warranty.length > 0 ? (
                 <View>
@@ -546,12 +546,12 @@ const ReceiptPDF = ({ form, services = [], brand, model, remark, warranty = [], 
                     {warranty.map(w => w.name).join(', ')}
                   </Text>
 
-                  <Text style={[styles.smallText, styles.bold, { marginTop: 3 }]}>ข้อยกเว้น:</Text>
+                  <Text style={[styles.smallText, styles.bold, { marginTop: 1 }]}>ข้อยกเว้น:</Text>
                   <Text style={styles.smallText}>
                     รถผู้ถือบัตรเกิดอุบัติเหตุทุกกรณี หรือ ความเสียหายที่เกิดจากความตั้งใจ เช่น ขูด, ขัด, กรีด, ลอก โดยบุคคลที่ไม่ใช่ช่างของศูนย์บริการ
                   </Text>
 
-                  <Text style={[styles.smallText, styles.bold, { marginTop: 3 }]}>ช่องทางการชำระเงิน:</Text>
+                  <Text style={[styles.smallText, styles.bold, { marginTop: 1 }]}>ช่องทางการชำระเงิน:</Text>
                   <Text style={styles.smallText}>
                     ธนาคารกสิกรไทย เลขบัญชี 290-2-58522-5 ชื่อบัญชี กุลชรี
                   </Text>
