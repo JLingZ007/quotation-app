@@ -69,22 +69,34 @@ export default function AddDataPage() {
 
     // Load brands, warranty conditions, and services from Firestore
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const brandSnapshot = await getDocs(collection(db, 'brands'));
-                const warrantySnapshot = await getDocs(collection(db, 'warrantyConditions'));
-                const serviceSnapshot = await getDocs(collection(db, 'services'));
+  const fetchData = async () => {
+    const [brandSnap, warrantySnap, serviceSnap] = await Promise.all([
+      getDocs(collection(db, 'brands')),
+      getDocs(collection(db, 'warrantyConditions')),
+      getDocs(collection(db, 'services')),
+    ]);
 
-                setBrands(brandSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                setWarrantyList(warrantySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                setServiceList(serviceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                showFeedback("เกิดข้อผิดพลาดในการโหลดข้อมูล", "error");
-            }
-        };
-        fetchData();
-    }, []);
+    setBrands(
+      brandSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name ภาษาไทย
+    );
+
+    setWarrantyList(
+      warrantySnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name
+    );
+
+    setServiceList(
+      serviceSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name
+    );
+  };
+  fetchData();
+}, []);
+
 
     // Load models based on selected brand
     useEffect(() => {
@@ -322,7 +334,7 @@ export default function AddDataPage() {
         if (!isOpen) return null;
         
         return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
                 <div className="bg-white rounded-lg p-6 w-full max-w-md">
                     <h3 className="text-lg font-medium mb-4">{title}</h3>
                     <form onSubmit={submitHandler}>
@@ -360,7 +372,8 @@ export default function AddDataPage() {
         if (!isOpen) return null;
         
         return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+
                 <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-medium">{title}</h3>
@@ -409,7 +422,7 @@ export default function AddDataPage() {
         if (!showEditModal) return null;
         
         return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
                 <div className="bg-white rounded-lg p-6 w-full max-w-md">
                     <h3 className="text-lg font-medium mb-4">แก้ไขข้อมูล</h3>
                     <form onSubmit={handleSaveEdit}>

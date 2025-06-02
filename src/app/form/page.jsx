@@ -48,19 +48,34 @@ export default function QuotationFormPage() {
 
 
   useEffect(() => {
-    const fetchData = async () => {
-      const [brandSnap, warrantySnap, serviceSnap] = await Promise.all([
-        getDocs(collection(db, 'brands')),
-        getDocs(collection(db, 'warrantyConditions')),
-        getDocs(collection(db, 'services')),
-      ]);
-      setBrands(brandSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-      setWarrantyList(warrantySnap.docs.map(d => ({ id: d.id, ...d.data() })));
-      setServiceList(serviceSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-      // setProvinces(['กรุงเทพมหานคร','ขอนแก่น','เชียงใหม่','นครราชสีมา','ภูเก็ต','ชลบุรี','อุบลราชธานี','เชียงราย']);
-    };
-    fetchData();
-  }, []);
+  const fetchData = async () => {
+    const [brandSnap, warrantySnap, serviceSnap] = await Promise.all([
+      getDocs(collection(db, 'brands')),
+      getDocs(collection(db, 'warrantyConditions')),
+      getDocs(collection(db, 'services')),
+    ]);
+
+    setBrands(
+      brandSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name ภาษาไทย
+    );
+
+    setWarrantyList(
+      warrantySnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name
+    );
+
+    setServiceList(
+      serviceSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name
+    );
+  };
+  fetchData();
+}, []);
+
 
   useEffect(() => {
     if (!form.brand) return setModels([]);
