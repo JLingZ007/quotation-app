@@ -78,10 +78,16 @@ export default function QuotationFormPage() {
 
 
   useEffect(() => {
-    if (!form.brand) return setModels([]);
-    getDocs(collection(db, 'brands', form.brand, 'models'))
-      .then(snap => setModels(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-  }, [form.brand]);
+  if (!form.brand) return setModels([]);
+  getDocs(collection(db, 'brands', form.brand, 'models'))
+    .then(snap => {
+      const sortedModels = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => a.name.localeCompare(b.name)); // ✅ เรียงตามชื่อ
+      setModels(sortedModels);
+    });
+}, [form.brand]);
+
 
   useEffect(() => {
     const fetchProvinces = async () => {

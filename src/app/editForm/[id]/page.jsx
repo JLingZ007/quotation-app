@@ -74,9 +74,23 @@ export default function QuotationEditFormPage() {
         getDocs(collection(db, 'services')),
       ]);
 
-      setBrands(brandSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-      setWarrantyList(warrantySnap.docs.map(d => ({ id: d.id, ...d.data() })));
-      setServiceList(serviceSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setBrands(
+        brandSnap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (a.name || '').localeCompare(b.name, 'th'))
+      );
+
+      setWarrantyList(
+        warrantySnap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (a.name || '').localeCompare(b.name, 'th'))
+      );
+
+      setServiceList(
+        serviceSnap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (a.name || '').localeCompare(b.name, 'th'))
+      );
     } catch (error) {
       console.error('โหลด brands/services/warranty ไม่สำเร็จ', error);
     }
@@ -86,11 +100,23 @@ export default function QuotationEditFormPage() {
 }, []);
 
 
+
   useEffect(() => {
-    if (!form.brand) return setModels([]);
-    getDocs(collection(db, 'brands', form.brand, 'models'))
-      .then(snap => setModels(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-  }, [form.brand]);
+  if (!form.brand) return setModels([]);
+
+  getDocs(collection(db, 'brands', form.brand, 'models'))
+    .then(snap => {
+      const sortedModels = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      setModels(sortedModels);
+    })
+    .catch(error => {
+      console.error('โหลด models ไม่สำเร็จ', error);
+      setModels([]);
+    });
+}, [form.brand]);
+
 
   useEffect(() => {
   const fetchProvinces = async () => {
@@ -600,20 +626,6 @@ export default function QuotationEditFormPage() {
               </button>
             </div>
 
-            {/* Print Preview Button */}
-            {/* {items.some(item => item.serviceId && item.unitPrice) && (
-              <div className="text-center mt-4">
-                <button
-                  type="button"
-                  className="inline-flex items-center text-blue-600 hover:text-blue-800"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                  </svg>
-                  พรีวิวใบเสนอราคา
-                </button>
-              </div>
-            )} */}
           </form>
         </div>
         

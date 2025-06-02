@@ -100,22 +100,26 @@ export default function AddDataPage() {
 
     // Load models based on selected brand
     useEffect(() => {
-        const fetchModels = async () => {
-            if (!selectedBrand) {
-                setModels([]);
-                setSelectedModel('');
-                return;
-            }
-            try {
-                const modelSnapshot = await getDocs(collection(db, 'brands', selectedBrand, 'models'));
-                setModels(modelSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-            } catch (error) {
-                console.error("Error fetching models:", error);
-                showFeedback("ไม่สามารถโหลดข้อมูลรุ่นรถได้", "error");
-            }
-        };
-        fetchModels();
-    }, [selectedBrand]);
+    const fetchModels = async () => {
+        if (!selectedBrand) {
+            setModels([]);
+            setSelectedModel('');
+            return;
+        }
+        try {
+            const modelSnapshot = await getDocs(collection(db, 'brands', selectedBrand, 'models'));
+            const sortedModels = modelSnapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .sort((a, b) => (a.name || '').localeCompare(b.name || '')); // ✅ เรียงชื่อ
+            setModels(sortedModels);
+        } catch (error) {
+            console.error("Error fetching models:", error);
+            showFeedback("ไม่สามารถโหลดข้อมูลรุ่นรถได้", "error");
+        }
+    };
+    fetchModels();
+}, [selectedBrand]);
+
 
     // Show feedback message
     const showFeedback = (message, type = 'success') => {
