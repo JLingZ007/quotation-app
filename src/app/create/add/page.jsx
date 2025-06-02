@@ -622,7 +622,7 @@ export default function AddDataPage() {
                         </div>
                     </div>
 
-                    {/* Submit button */}
+                    {/* Submit button
                     <div className="mt-6 pt-4 border-t border-gray-200">
                         <button
                             onClick={handleSubmit}
@@ -641,7 +641,7 @@ export default function AddDataPage() {
                                 </>
                             )}
                         </button>
-                    </div>
+                    </div> */}
 
                     {/* Back button */}
                     <div className="mt-4 pt-4 border-t border-gray-200">

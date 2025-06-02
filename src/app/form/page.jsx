@@ -5,10 +5,20 @@ import { db } from '../lib/firebase';
 import { useParams, useRouter } from 'next/navigation';
 import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getNextRunningNumber } from '../utils/generateRunningNumber';
+import Link from 'next/link';
+import CarDataModal from '../components/CreateCarData';
+
+import {
+  ArrowRight
+} from 'lucide-react';
 
 export default function QuotationFormPage() {
   const router = useRouter();
   const params = useParams();
+  const [showCarModal, setShowCarModal] = useState(false);
+  const [feedback, setFeedback] = useState({ show: false, message: '', type: '' });
+
+
   const [form, setForm] = useState({
     customerName: '',
     phone: '',
@@ -104,6 +114,13 @@ export default function QuotationFormPage() {
     }
   };
 
+  const showFeedback = (message, type = 'success') => {
+  setFeedback({ show: true, message, type });
+  setTimeout(() => {
+    setFeedback({ show: false, message: '', type: '' });
+  }, 3000);
+};
+
   const handleSubmit = async e => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -159,7 +176,7 @@ export default function QuotationFormPage() {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              สร้างใบเสนอราคา
+              สร้างรายการข้อมูลลูกค้า
             </h1>
           </div>
 
@@ -272,14 +289,31 @@ export default function QuotationFormPage() {
 
             {/* Vehicle Info */}
             <section className="mb-8">
-              <div className="flex items-center mb-4">
-                <div className="bg-blue-100 rounded-full p-2 mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-semibold text-gray-800">ข้อมูลรถ</h2>
-              </div>
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+        <div className="flex items-center">
+          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">ข้อมูลรถ</h2>
+            <p className="text-sm text-gray-500 mt-0.5">จัดการข้อมูลยานพาหนะและรายละเอียด</p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setShowCarModal(true)}
+          className="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 hover:border-blue-300 hover:bg-blue-50 text-gray-700 hover:text-blue-700 font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          เพิ่มข้อมูลรถ
+        </button>
+      </div>
+
+      
               <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -622,6 +656,14 @@ export default function QuotationFormPage() {
           </ul>
         </div>
       </div>
+      {/* Modal - อยู่นอก form หลัก */}
+      <CarDataModal 
+        isOpen={showCarModal} 
+        onClose={() => setShowCarModal(false)} 
+        showFeedback={showFeedback} 
+      />
     </div>
+
+    
   );
 }

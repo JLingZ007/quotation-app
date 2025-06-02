@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
     Search, Filter, Loader2, FileText, Receipt,
-    ChevronDown, ChevronUp, ArrowLeft, Calendar, MapPin, Pencil
+    ChevronDown, ChevronUp, ArrowLeft, Calendar, MapPin, Pencil, ArrowRight
 } from 'lucide-react';
 
 export default function ContentListPage() {
@@ -179,9 +179,14 @@ export default function ContentListPage() {
                             <p className="text-gray-500 mt-1">ระบบบริหารจัดการใบเสนอราคาและใบเสร็จ</p>
                         </div>
 
-                        <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors mb-4 md:mb-0">
-                            <ArrowLeft className="w-5 h-5 mr-1" /> กลับไปยังรายการ
-                        </Link>
+                        <div className="flex flex-col gap-2">
+                            <Link href="/form" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors">
+                                <ArrowRight className="w-5 h-5 mr-1" /> ไปยังหน้าสร้างรายการ
+                            </Link>
+                            <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors">
+                                <ArrowLeft className="w-5 h-5 mr-1" /> กลับไปยังหน้าแรก
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Search and filter section */}
@@ -292,7 +297,7 @@ export default function ContentListPage() {
                                                 </div>
                                             </th>
                                             <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                <div className="flex items-center">
+                                                <div className="flex items-center ">
                                                     <span>แก้ไข</span>
                                                 </div>
                                             </th>
@@ -384,7 +389,7 @@ export default function ContentListPage() {
                                                                 e.stopPropagation();
                                                                 router.push(`/invoice/${item.id}`);
                                                             }}
-                                                            className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-green-200 rounded-md transition-colors flex items-center cursor-pointer"
+                                                            className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors flex items-center cursor-pointer"
                                                         >
                                                             <Receipt className="w-3.5 h-3.5 mr-1" />
                                                             ใบแจ้งหนี้
@@ -394,22 +399,22 @@ export default function ContentListPage() {
                                                                 e.stopPropagation();
                                                                 router.push(`/vehicle-receive/${item.id}`);
                                                             }}
-                                                            className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-green-200 rounded-md transition-colors flex items-center cursor-pointer"
+                                                            className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors flex items-center cursor-pointer"
                                                         >
                                                             <Receipt className="w-3.5 h-3.5 mr-1" />
                                                             ใบรับรถ
                                                         </button>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-6 py-4 whitespace-nowrap ">
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             router.push(`/editForm/${item.id}`);
                                                         }}
-                                                        className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors flex items-center text-sm"
+                                                        className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors flex items-center text-sm cursor-pointer"
                                                     >
-                                                        <Pencil className="w-4 h-4 mr-1" />
+                                                        <Pencil className="w-4 h-4 mr-1 " />
                                                         แก้ไข
                                                     </button>
                                                 </td>

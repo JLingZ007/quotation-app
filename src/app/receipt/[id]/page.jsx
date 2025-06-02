@@ -190,6 +190,7 @@ export default function ContentDetailPage() {
                                     deposit={deposit}
                                     discount={discount}
                                     totalPrice={totalPrice}
+                                    remark={content.remark}
                                     docNumber={docNumber}
 
                                 />
