@@ -15,8 +15,8 @@ export default function ContentListPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
-    const [sortField, setSortField] = useState('customerName');
-    const [sortDirection, setSortDirection] = useState('asc');
+    const [sortField, setSortField] = useState('createdAt');
+    const [sortDirection, setSortDirection] = useState('desc');
     const router = useRouter();
 
     useEffect(() => {
@@ -252,6 +252,15 @@ export default function ContentListPage() {
                                             </th>
                                             <th
                                                 className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                                onClick={() => handleSort('createdAt')}
+                                            >
+                                                <div className="flex items-center">
+                                                    <span>วันที่</span>
+                                                    {renderSortIcon('createdAt')}
+                                                </div>
+                                            </th>
+                                            <th
+                                                className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                                 onClick={() => handleSort('customerName')}
                                             >
                                                 <div className="flex items-center">
@@ -282,15 +291,7 @@ export default function ContentListPage() {
                                                     {renderSortIcon('serviceNames')}
                                                 </div>
                                             </th>
-                                            <th
-                                                className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                                                onClick={() => handleSort('createdAt')}
-                                            >
-                                                <div className="flex items-center">
-                                                    <span>วันที่</span>
-                                                    {renderSortIcon('createdAt')}
-                                                </div>
-                                            </th>
+                                            
                                             <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 <div className="flex items-center">
                                                     <span>พิมพ์</span>
@@ -317,6 +318,12 @@ export default function ContentListPage() {
                                                     >
                                                         {getTypeIcon(item.type)}
                                                         {getTypeLabel(item.type)}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm flex items-center text-gray-700">
+                                                        <Calendar className="w-4 h-4 mr-1 text-gray-400" />
+                                                        {formatDate(item.createdAt)}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -356,12 +363,7 @@ export default function ContentListPage() {
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm flex items-center text-gray-700">
-                                                        <Calendar className="w-4 h-4 mr-1 text-gray-400" />
-                                                        {formatDate(item.createdAt)}
-                                                    </div>
-                                                </td>
+                                                
                                                 <td className="px-6 py-4 whitespace-nowrap space-x-2 text-sm">
                                                     <div className="flex space-x-2 ">
                                                         <button
