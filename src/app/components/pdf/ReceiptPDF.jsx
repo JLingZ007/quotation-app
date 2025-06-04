@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: '#000',
-    paddingBottom: 4,
+    paddingBottom: 2,
     // marginBottom: 2,
   },
   customerInfo: {
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontFamily: 'THSarabunNew-Bold',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   infoText: {
     fontSize: 13,
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   table: {
-    marginTop: 10,
+    marginTop: 8,
   },
   tableHeader: {
     flexDirection: 'row',
@@ -267,7 +267,7 @@ totalTextVatValue: {
     borderRightWidth: 1,
     borderRightColor: '#000',
     justifyContent: 'center',
-    fontSize: 14,
+    fontSize: 12,
     lineHeight: 1,           // เพิ่มบังคับชิดบรรทัด
   },
 
@@ -315,7 +315,7 @@ totalTextVatValue: {
   },
 
   signatureBox: {
-    width: '32%',
+    width: '28%',
     borderWidth: 1,
     borderColor: '#000',
     padding: 6,
@@ -389,7 +389,7 @@ const ReceiptPDF = ({ form, services = [], brand, model, remark, warranty = [], 
 
               <View style={styles.companyDetails}>
                 <Text style={styles.companyName}>บริษัท ถึงแก่น อีลิท ชิลด์ จำกัด</Text>
-                <Text style={styles.companyEnName}>THUENGKAEN CO.,LTD.</Text>
+                <Text style={styles.companyEnName}>THUENGKAEN ELITE SHIELD CO.,LTD.</Text>
                 <Text style={styles.companyAddress}>
                   149/1 ถนนมิตรภาพ ตำบลในเมือง อำเภอเมืองขอนแก่น จังหวัดขอนแก่น 40000
                 </Text>

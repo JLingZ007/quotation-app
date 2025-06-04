@@ -368,7 +368,7 @@ const InvoicePDF = ({ form, services = [], brand, model, remark, warranty = [], 
 
               <View style={styles.companyDetails}>
                 <Text style={styles.companyName}>บริษัท ถึงแก่น อีลิท ชิลด์ จำกัด</Text>
-                <Text style={styles.companyEnName}>THUENGKAEN CO.,LTD.</Text>
+                <Text style={styles.companyEnName}>THUENGKAEN ELITE SHIELD CO.,LTD.</Text>
                 <Text style={styles.companyAddress}>
                   149/1 ถนนมิตรภาพ ตำบลในเมือง อำเภอเมืองขอนแก่น จังหวัดขอนแก่น 40000
                 </Text>
