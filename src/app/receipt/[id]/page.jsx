@@ -9,6 +9,7 @@ import { numberWithCommas } from '../../utils/number-format';
 import { numberToThaiText } from '../../utils/numberToThaiText'; // ปรับ path ให้ตรง
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import ReceiptPDF from '../../components/pdf/ReceiptPDF';
+import ReceiptNoVatPDF from '../../components/pdf/ReceiptNoVatPDF';
 
 
 
@@ -203,6 +204,34 @@ export default function ContentDetailPage() {
                                 <>
                                     <Download className="w-4 h-4 mr-2" />
                                     {loading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลดใบเสร็จ'}
+                                </>
+                            )}
+                        </PDFDownloadLink>
+                        <PDFDownloadLink
+                            document={
+                                <ReceiptNoVatPDF
+                                    form={content}
+                                    services={services}
+                                    grandTotal={grandTotal}
+                                    brand={brand}
+                                    model={model}
+                                    warranty={warranty}
+                                    deposit={deposit}
+                                    discount={discount}
+                                    totalPrice={totalPrice}
+                                    remark={content.remark}
+                                    docNumber={docNumber}
+
+                                />
+                            }
+                            fileName={`ใบเสร็จ_${params.id}.pdf`}
+                            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                        >
+
+                            {({ loading }) => (
+                                <>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    {loading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลดใบเสร็จไม่รวม VAT'}
                                 </>
                             )}
                         </PDFDownloadLink>
