@@ -61,25 +61,23 @@ const styles = StyleSheet.create({
 
   companyLogo: {
     position: 'absolute',
-    top: -20,
+    top: -17,
     left: 0,
-    width: 150,
-    height: 150,
+    width: 140,
+    height: 140,
     objectFit: 'contain',
     margin: 0,           // กัน margin ใด ๆ
     padding: 0,          // กัน padding ใด ๆ
     zIndex: 10,          // เผื่อทับข้อความอื่น
   },
 
-
-
   companyDetails: {
     flexShrink: 1,
-    paddingLeft: 150,
+    paddingLeft: 170,
   },
 
   companyName: {
-    fontSize: 19,
+    fontSize: 21,
     fontFamily: 'THSarabunNew-Bold',
   },
 
@@ -89,19 +87,19 @@ const styles = StyleSheet.create({
   },
 
   companyAddress: {
-    fontSize: 12,
+    fontSize: 11,
   },
 
   docInfo: {
     minWidth: 130,
     alignItems: 'flex-end',
     justifyContent: 'flex-start',
-    marginLeft: 20,
+    // marginLeft: 15,
   },
 
   docNumber: {
     fontSize: 14,
-    marginTop: 5,
+    marginTop: 3,
   },
 
 
@@ -119,7 +117,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'THSarabunNew-Bold',
     marginBottom: 2,
   },
@@ -181,11 +179,11 @@ const styles = StyleSheet.create({
     width: '14%',
     borderRightWidth: 1,
     borderRightColor: '#000',
-    textAlign: 'right',
+    textAlign: 'center',
   },
   amountCell: {
     width: '14%',
-    textAlign: 'right',
+    textAlign: 'center',
   },
   totalTextRow: {
     flexDirection: 'row',
@@ -203,8 +201,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   totalTextValue: {
-    width: '70%',
-    padding: 4,
+    width: '64%',
+    // padding: 4,
+    paddingLeft: 75,
     borderLeftWidth: 1,
     borderLeftColor: '#000',
     fontSize: 14,
@@ -250,7 +249,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: '#000',
     justifyContent: 'center',
-    fontSize: 14,
+    fontSize: 12,
     lineHeight: 1,           // เพิ่มบังคับชิดบรรทัด
   },
 
@@ -260,7 +259,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     justifyContent: 'center',
     alignItems: 'flex-end',
-    fontSize: 14,
+    fontSize: 12,
     lineHeight: 1,
   },
 
@@ -272,7 +271,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     borderRightWidth: 1,
     borderRightColor: '#000',
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: 'THSarabunNew-Bold',
     backgroundColor: '#fff',
     justifyContent: 'center',
@@ -285,7 +284,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     alignItems: 'flex-end',
     justifyContent: 'center',
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: 'THSarabunNew-Bold',
     backgroundColor: '#fff',
   },
@@ -360,7 +359,7 @@ const InvoicePDF = ({ form, services = [], brand, model, remark, warranty = [], 
           {/* ใบเสนอราคา ตรงกลาง */}
           <Image src="/logo.png" style={styles.companyLogo} />
           <View style={styles.docTitleContainer}>
-            <Text style={styles.docTitle}>ใบแจ้งหนี้</Text>
+            <Text style={styles.docTitle}>ใบแจ้งหนี้ / Invoice</Text>
           </View>
           {/* ข้อมูลบริษัท & เลขที่เอกสาร */}
           <View style={styles.companyInfoRow}>
@@ -417,8 +416,8 @@ const InvoicePDF = ({ form, services = [], brand, model, remark, warranty = [], 
               <Text>(No.)</Text>
             </View>
             <View style={[styles.tableCell, styles.descriptionCell]}>
-              <Text>รายละเอียด</Text>
-              <Text>(Description)</Text>
+              <Text>รายการบริการ</Text>
+              <Text>(List Program)</Text>
             </View>
             <View style={[styles.tableCell, styles.quantityCell]}>
               <Text>จำนวน</Text>
@@ -426,9 +425,11 @@ const InvoicePDF = ({ form, services = [], brand, model, remark, warranty = [], 
             </View>
             <View style={[styles.tableCell, styles.unitPriceCell]}>
               <Text>ราคาต่อหน่วย</Text>
+              <Text>(Price per Unit)</Text>
             </View>
             <View style={[styles.tableCell, styles.amountCell]}>
               <Text>จำนวนเงิน</Text>
+              <Text>(Amount)</Text>
             </View>
           </View>
 
@@ -446,10 +447,10 @@ const InvoicePDF = ({ form, services = [], brand, model, remark, warranty = [], 
                   <Text>{service.quantity || 1}</Text>
                 </View>
                 <View style={[styles.tableCell, styles.unitPriceCell]}>
-                  <Text>{numberWithCommas(service.price || 0)}</Text>
+                  <Text>{numberWithCommas(service.price || 0)}.00</Text>
                 </View>
                 <View style={[styles.tableCell, styles.amountCell]}>
-                  <Text>{numberWithCommas((service.price || 0) * (service.quantity || 1))}</Text>
+                  <Text>{numberWithCommas((service.price || 0) * (service.quantity || 1))}.00</Text>
                 </View>
               </View>
             ))
@@ -522,7 +523,7 @@ const InvoicePDF = ({ form, services = [], brand, model, remark, warranty = [], 
 
                   <Text style={[styles.smallText, styles.bold, { marginTop: 1 }]}>ช่องทางการชำระเงิน:</Text>
                   <Text style={styles.smallText}>
-                    ธนาคารกสิกรไทย เลขบัญชี 290-2-58522-5 ชื่อบัญชี กุลชรี
+                    ธนาคารกสิกรไทย เลขบัญชี 290-2-58522-5 ชื่อบัญชี กุลชรี คำสอนทา
                   </Text>
                 </View>
               ) : (
@@ -541,7 +542,7 @@ const InvoicePDF = ({ form, services = [], brand, model, remark, warranty = [], 
                   <Text>ยอดรวม{"\n"}TOTAL</Text>
                 </View>
                 <View style={styles.totalValueCell}>
-                  <Text>{numberWithCommas(totalPrice)}</Text>
+                  <Text>{numberWithCommas(totalPrice)}.00</Text>
                 </View>
               </View>
               <View style={styles.totalRow}>
@@ -549,7 +550,7 @@ const InvoicePDF = ({ form, services = [], brand, model, remark, warranty = [], 
                   <Text>ส่วนลด{"\n"}DISCOUNT</Text>
                 </View>
                 <View style={styles.totalValueCell}>
-                  <Text>{numberWithCommas(discount)}</Text>
+                  <Text>{numberWithCommas(discount)}.00</Text>
                 </View>
               </View>
               <View style={styles.totalRow}>
@@ -557,7 +558,7 @@ const InvoicePDF = ({ form, services = [], brand, model, remark, warranty = [], 
                   <Text>มัดจำจ่าย{"\n"}DEPOSIT</Text>
                 </View>
                 <View style={styles.totalValueCell}>
-                  <Text>{numberWithCommas(deposit)}</Text>
+                  <Text>{numberWithCommas(deposit)}.00</Text>
                 </View>
               </View>
               <View style={styles.totalRow}>
@@ -565,7 +566,7 @@ const InvoicePDF = ({ form, services = [], brand, model, remark, warranty = [], 
                   <Text>ยอดรวมสุทธิ{"\n"}GRAND TOTAL</Text>
                 </View>
                 <View style={styles.grandTotalValue}>
-                  <Text>{numberWithCommas(grandTotal)}</Text>
+                  <Text>{numberWithCommas(grandTotal)}.00</Text>
                 </View>
               </View>
             </View>

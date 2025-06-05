@@ -268,8 +268,8 @@ export default function ContentDetailPage() {
                                     <th className="border px-2 py-1 text-center w-18 text-xs">ลำดับ</th>
                                     <th className="border px-2 py-1 text-left text-xs">รายละเอียด<br />(Description)</th>
                                     <th className="border px-2 py-1 text-center w-16 text-xs">จำนวน<br />(Quantity)</th>
-                                    <th className="border px-2 py-1 text-right w-24 text-xs">ราคาต่อหน่วย</th>
-                                    <th className="border px-2 py-1 text-right w-24 text-xs">จำนวนเงิน</th>
+                                    <th className="border px-2 py-1 text-center w-24 text-xs">ราคาต่อหน่วย<br />(Quantity)</th>
+                                    <th className="border px-2 py-1 text-center w-24 text-xs">จำนวนเงิน<br />(Quantity)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -279,9 +279,9 @@ export default function ContentDetailPage() {
                                             <td className="border px-2 py-1 text-center text-sm">{index + 1}</td>
                                             <td className="border px-2 py-1 text-sm">{service.name}</td>
                                             <td className="border px-2 py-1 text-center text-sm">{service.quantity || 1}</td>
-                                            <td className="border px-2 py-1 text-right text-sm">{numberWithCommas(service.price || 0)}</td>
+                                            <td className="border px-2 py-1 text-right text-sm">{numberWithCommas(service.price || 0)}.00</td>
                                             <td className="border px-2 py-1 text-right text-sm">
-                                                {numberWithCommas((service.price || 0) * (service.quantity || 1))}
+                                                {numberWithCommas((service.price || 0) * (service.quantity || 1))}.00
                                             </td>
                                         </tr>
                                     ))
@@ -307,7 +307,7 @@ export default function ContentDetailPage() {
                                 {/* Additional note row */}
                                 <tr className='bg-gray-300'>
                                     <td className="border px-2 py-1 text-center font-medium text-sm ">ตัวอักษร</td>
-                                    <td colSpan="4" className="border px-2 py-1 text-sm">
+                                    <td colSpan="4" className="border px-2 py-1 text-sm pl-28">
                                         ({numberToThaiText(grandTotal)})
                                     </td>
                                 </tr>
@@ -340,7 +340,7 @@ export default function ContentDetailPage() {
 
                                         <p className="font-semibold mt-1 text-sm">ช่องทางการชำระเงิน:</p>
                                         <p className="pl-2 text-sm font-light">
-                                            ธนาคารกสิกรไทย เลขบัญชี 290-2-58522-5 ชื่อบัญชี กุลชรี
+                                            ธนาคารกสิกรไทย เลขบัญชี 290-2-58522-5 ชื่อบัญชี กุลชรี คำสอนทา
                                         </p>
                                     </div>
                                 ) : (
@@ -360,7 +360,7 @@ export default function ContentDetailPage() {
                                             ยอดรวม<br />TOTAL
                                         </td>
                                         <td className="border px-2 py-1 text-right font-medium text-xs">
-                                            {numberWithCommas(totalPrice)}
+                                            {numberWithCommas(totalPrice)}.00
                                         </td>
                                     </tr>
                                     <tr>
@@ -368,7 +368,7 @@ export default function ContentDetailPage() {
                                             ส่วนลด<br />DISCOUNT
                                         </td>
                                         <td className="border px-2 py-1 text-right text-xs">
-                                            {numberWithCommas(discount)}
+                                            {numberWithCommas(discount)}.00
                                         </td>
                                     </tr>
                                     <tr>
@@ -376,7 +376,7 @@ export default function ContentDetailPage() {
                                             มัดจำจ่าย<br />DEPOSIT
                                         </td>
                                         <td className="border px-2 py-1 text-right text-xs">
-                                            {numberWithCommas(deposit)}
+                                            {numberWithCommas(deposit)}.00
                                         </td>
                                     </tr>
                                     <tr>
@@ -384,7 +384,7 @@ export default function ContentDetailPage() {
                                             ยอดรวมสุทธิ<br />GRAND TOTAL
                                         </td>
                                         <td className="border px-2 py-1 text-right font-bold text-sm">
-                                            {numberWithCommas(grandTotal)}
+                                            {numberWithCommas(grandTotal)}.00
                                         </td>
                                     </tr>
                                 </tbody>

@@ -61,10 +61,10 @@ const styles = StyleSheet.create({
 
   companyLogo: {
     position: 'absolute',
-    top: -20,
+    top: -17,
     left: 0,
-    width: 150,
-    height: 150,
+    width: 140,
+    height: 140,
     objectFit: 'contain',
     margin: 0,           // กัน margin ใด ๆ
     padding: 0,          // กัน padding ใด ๆ
@@ -75,11 +75,11 @@ const styles = StyleSheet.create({
 
   companyDetails: {
     flexShrink: 1,
-    paddingLeft: 150,
+    paddingLeft: 170,
   },
 
   companyName: {
-    fontSize: 19,
+    fontSize: 21,
     fontFamily: 'THSarabunNew-Bold',
   },
 
@@ -89,19 +89,19 @@ const styles = StyleSheet.create({
   },
 
   companyAddress: {
-    fontSize: 12,
+    fontSize: 11,
   },
 
   docInfo: {
     minWidth: 130,
     alignItems: 'flex-end',
     justifyContent: 'flex-start',
-    marginLeft: 20,
+    // marginLeft: 15,
   },
 
   docNumber: {
     fontSize: 14,
-    marginTop: 5,
+    marginTop: 3,
   },
 
 
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'THSarabunNew-Bold',
     marginBottom: 1,
   },
@@ -203,8 +203,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   totalTextValue: {
-    width: '70%',
-    padding: 4,
+    width: '64%',
+    paddingTop: 4,
+    paddingLeft: 75,
     borderLeftWidth: 1,
     borderLeftColor: '#000',
     fontSize: 14,
@@ -417,8 +418,8 @@ const QuotationPDF = ({ form, services = [], brand, model, remark, warranty = []
               <Text>(No.)</Text>
             </View>
             <View style={[styles.tableCell, styles.descriptionCell]}>
-              <Text>รายละเอียด</Text>
-              <Text>(Description)</Text>
+              <Text>รายการบริการ</Text>
+              <Text>(List Program)</Text>
             </View>
             <View style={[styles.tableCell, styles.quantityCell]}>
               <Text>จำนวน</Text>
@@ -426,9 +427,11 @@ const QuotationPDF = ({ form, services = [], brand, model, remark, warranty = []
             </View>
             <View style={[styles.tableCell, styles.unitPriceCell]}>
               <Text>ราคาต่อหน่วย</Text>
+              <Text>(Price per Unit)</Text>
             </View>
             <View style={[styles.tableCell, styles.amountCell]}>
               <Text>จำนวนเงิน</Text>
+              <Text>(Amount)</Text>
             </View>
           </View>
 
@@ -522,11 +525,11 @@ const QuotationPDF = ({ form, services = [], brand, model, remark, warranty = []
 
                   <Text style={[styles.smallText, styles.bold, { marginTop: 1 }]}>ช่องทางการชำระเงิน:</Text>
                   <Text style={styles.smallText}>
-                    ธนาคารกสิกรไทย เลขบัญชี 290-2-58522-5 ชื่อบัญชี กุลชรี
+                    ธนาคารกสิกรไทย เลขบัญชี 290-2-58522-5 ชื่อบัญชี กุลชรี คำสอนทา
                   </Text>
                 </View>
               ) : (
-                <Text style={[styles.smallText, {  color: '#666' }]}>
+                <Text style={[styles.smallText, { color: '#666' }]}>
                   ไม่มีข้อมูลเงื่อนไขการรับประกัน
                 </Text>
               )}

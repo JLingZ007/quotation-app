@@ -341,7 +341,7 @@ export default function ContentDetailPage() {
 
                                         <p className="font-semibold mt-1 text-sm">ช่องทางการชำระเงิน:</p>
                                         <p className="pl-2 text-sm font-light">
-                                            ธนาคารกสิกรไทย เลขบัญชี 290-2-58522-5 ชื่อบัญชี กุลชรี
+                                            ธนาคารกสิกรไทย เลขบัญชี 290-2-58522-5 ชื่อบัญชี กุลชรี คำสอนทา
                                         </p>
                                     </div>
                                 ) : (

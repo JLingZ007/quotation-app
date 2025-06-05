@@ -61,10 +61,10 @@ const styles = StyleSheet.create({
 
   companyLogo: {
     position: 'absolute',
-    top: -20,
+    top: -17,
     left: 0,
-    width: 150,
-    height: 150,
+    width: 140,
+    height: 140,
     objectFit: 'contain',
     margin: 0,           // กัน margin ใด ๆ
     padding: 0,          // กัน padding ใด ๆ
@@ -75,11 +75,11 @@ const styles = StyleSheet.create({
 
   companyDetails: {
     flexShrink: 1,
-    paddingLeft: 150,
+    paddingLeft: 170,
   },
 
   companyName: {
-    fontSize: 19,
+    fontSize: 21,
     fontFamily: 'THSarabunNew-Bold',
   },
 
@@ -89,19 +89,19 @@ const styles = StyleSheet.create({
   },
 
   companyAddress: {
-    fontSize: 12,
+    fontSize: 11,
   },
 
   docInfo: {
     minWidth: 130,
     alignItems: 'flex-end',
     justifyContent: 'flex-start',
-    marginLeft: 20,
+    // marginLeft: 15,
   },
 
   docNumber: {
     fontSize: 14,
-    marginTop: 5,
+    marginTop: 3,
   },
 
 
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'THSarabunNew-Bold',
     marginBottom: 1,
   },
@@ -205,27 +205,28 @@ const styles = StyleSheet.create({
   totalTextValue: {
     width: '64%',
     // padding: 4,
+    paddingLeft: 75,
     borderLeftWidth: 1,
     borderLeftColor: '#000',
     fontSize: 14,
   },
   totalTextVatLabel: {
-  width: '14.26%',
-  // padding: 4,
-  fontSize: 13,
-  textAlign: 'right',
-  borderLeftWidth: 1,
-  borderLeftColor: '#000',
-  borderRightWidth: 1,
-  borderColor: '#000',
-},
+    width: '14.26%',
+    // padding: 4,
+    fontSize: 13,
+    textAlign: 'right',
+    borderLeftWidth: 1,
+    borderLeftColor: '#000',
+    borderRightWidth: 1,
+    borderColor: '#000',
+  },
 
-totalTextVatValue: {
-  width: '14%',
-  // padding: 4,
-  fontSize: 14,
-  textAlign: 'right',
-},
+  totalTextVatValue: {
+    width: '14%',
+    // padding: 4,
+    fontSize: 14,
+    textAlign: 'right',
+  },
   footerSection: {
     flexDirection: 'row',
     marginTop: 10,
@@ -440,18 +441,18 @@ const ReceiptPDF = ({ form, services = [], brand, model, remark, warranty = [], 
               <Text>(No.)</Text>
             </View>
             <View style={[styles.tableCell, styles.descriptionCell]}>
-              <Text>รายละเอียด</Text>
-              <Text>(Description)</Text>
+              <Text>รายการบริการ</Text>
+              <Text>(List Program)</Text>
             </View>
             <View style={[styles.tableCell, styles.quantityCell]}>
               <Text>จำนวน</Text>
               <Text>(Quantity)</Text>
             </View>
-            <View style={[styles.tableCell, styles.unitPriceCell,{ textAlign: 'center' }]}>
+            <View style={[styles.tableCell, styles.unitPriceCell, { textAlign: 'center' }]}>
               <Text>ราคาต่อหน่วย</Text>
               <Text>(รวม VAT)</Text>
             </View>
-            <View style={[styles.tableCell, styles.amountCell,{ textAlign: 'center' }]}>
+            <View style={[styles.tableCell, styles.amountCell, { textAlign: 'center' }]}>
               <Text>จำนวนเงิน</Text>
               <Text>(รวม VAT)</Text>
             </View>
@@ -515,18 +516,18 @@ const ReceiptPDF = ({ form, services = [], brand, model, remark, warranty = [], 
             <View style={[styles.tableCell, styles.totalTextValue]}>
               <Text>({numberToThaiText(grandTotal)})</Text>
             </View>
-            <View style={[styles.tableCell,styles.totalTextVatLabel]}>
+            <View style={[styles.tableCell, styles.totalTextVatLabel]}>
               <Text>ราคาก่อนรวม VAT</Text>
             </View>
-            <View style={[styles.tableCell,styles.totalTextVatValue]}>
+            <View style={[styles.tableCell, styles.totalTextVatValue]}>
               <Text>{numberWithCommas(totalBeforeVat)}</Text>
             </View>
           </View>
           <View style={styles.totalTextRow}>
-            <View style={[styles.tableCell,styles.totalTextLabel]}>
+            <View style={[styles.tableCell, styles.totalTextLabel]}>
               <Text>หมายเหตุ</Text>
             </View>
-            <View style={[styles.tableCell,styles.totalTextValue]}>
+            <View style={[styles.tableCell, styles.totalTextValue]}>
               <Text>{remark}</Text>
             </View>
           </View>
@@ -553,11 +554,11 @@ const ReceiptPDF = ({ form, services = [], brand, model, remark, warranty = [], 
 
                   <Text style={[styles.smallText, styles.bold, { marginTop: 1 }]}>ช่องทางการชำระเงิน:</Text>
                   <Text style={styles.smallText}>
-                    ธนาคารกสิกรไทย เลขบัญชี 290-2-58522-5 ชื่อบัญชี กุลชรี
+                    ธนาคารกสิกรไทย เลขบัญชี 021-1-56415-6 ชื่อบัญชี บจก. ถึงแก่น อีลิท ชิลด์
                   </Text>
                 </View>
               ) : (
-                <Text style={[styles.smallText, {  color: '#666' }]}>
+                <Text style={[styles.smallText, { color: '#666' }]}>
                   ไม่มีข้อมูลเงื่อนไขการรับประกัน
                 </Text>
               )}

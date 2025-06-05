@@ -18,8 +18,8 @@ Font.register({
 });
 
 Font.register({
-  family: 'THSarabunNew-Italic',
-  src: '/fonts/THSarabunNew Italic.ttf',
+    family: 'THSarabunNew-Italic',
+    src: '/fonts/THSarabunNew Italic.ttf',
 });
 
 const styles = StyleSheet.create({
@@ -61,25 +61,23 @@ const styles = StyleSheet.create({
 
     companyLogo: {
         position: 'absolute',
-        top: -20,
+        top: -17,
         left: 0,
-        width: 150,
-        height: 150,
+        width: 140,
+        height: 140,
         objectFit: 'contain',
         margin: 0,           // กัน margin ใด ๆ
         padding: 0,          // กัน padding ใด ๆ
         zIndex: 10,          // เผื่อทับข้อความอื่น
     },
 
-
-
     companyDetails: {
         flexShrink: 1,
-        paddingLeft: 150,
+        paddingLeft: 170,
     },
 
     companyName: {
-        fontSize: 19,
+        fontSize: 21,
         fontFamily: 'THSarabunNew-Bold',
     },
 
@@ -89,19 +87,19 @@ const styles = StyleSheet.create({
     },
 
     companyAddress: {
-        fontSize: 12,
+        fontSize: 11,
     },
 
     docInfo: {
         minWidth: 130,
         alignItems: 'flex-end',
         justifyContent: 'flex-start',
-        marginLeft: 20,
+        // marginLeft: 15,
     },
 
     docNumber: {
         fontSize: 14,
-        marginTop: 5,
+        marginTop: 3,
     },
 
 
