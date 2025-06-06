@@ -14,7 +14,8 @@ export default function ContentListPage() {
     const [filteredRecords, setFilteredRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [typeFilter, setTypeFilter] = useState('all');
+    const [warrantyFilter, setWarrantyFilter] = useState('all');
+    const [warrantyOptions, setWarrantyOptions] = useState([]);
     const [sortField, setSortField] = useState('createdAt');
     const [sortDirection, setSortDirection] = useState('desc');
     const router = useRouter();
@@ -52,8 +53,9 @@ export default function ContentListPage() {
                             }
                         }
 
-                        // ดึงชื่อ warranty
+                        // ดึงชื่อ warranty และเก็บ ID ไว้ด้วย
                         let warrantyName = '-';
+                        let warrantyIds = data.warranty; // เก็บ ID เดิมไว้สำหรับ filter
 
                         if (Array.isArray(data.warranty)) {
                             const names = [];
@@ -76,6 +78,7 @@ export default function ContentListPage() {
                             serviceNames,
                             license: data.license || '-',
                             province: data.province || '-',
+                            warranty: warrantyIds, // เก็บ ID สำหรับ filter
                             warrantyName,
                             createdAt: data.createdAt?.toDate() || new Date(),
                         };
@@ -94,8 +97,26 @@ export default function ContentListPage() {
         fetchAll();
     }, []);
 
+    // เพิ่ม useEffect สำหรับดึง warranty options
     useEffect(() => {
-        // Filter records based on search term and type filter
+        const fetchWarrantyOptions = async () => {
+            try {
+                const snapshot = await getDocs(collection(db, 'warrantyConditions'));
+                const options = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    name: doc.data().name
+                }));
+                setWarrantyOptions(options);
+            } catch (error) {
+                console.error("Error fetching warranty options:", error);
+            }
+        };
+
+        fetchWarrantyOptions();
+    }, []);
+
+    useEffect(() => {
+        // Filter records based on search term and warranty filter
         const filtered = records.filter(record => {
             const matchesSearch =
                 record.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -104,9 +125,16 @@ export default function ContentListPage() {
                 record.serviceNames.some(service => service.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 record.license?.toLowerCase().includes(searchTerm.toLowerCase());
 
-            const matchesType = typeFilter === 'all' || record.type === typeFilter;
+            // Debug log เพื่อดูข้อมูล
+            console.log('Record warranty:', record.warranty, 'Filter:', warrantyFilter);
 
-            return matchesSearch && matchesType;
+            const matchesWarranty = warrantyFilter === 'all' ||
+                (record.warranty && (
+                    (Array.isArray(record.warranty) && record.warranty.includes(warrantyFilter)) ||
+                    (typeof record.warranty === 'string' && record.warranty === warrantyFilter)
+                ));
+
+            return matchesSearch && matchesWarranty;
         });
 
         // Sort filtered records
@@ -114,7 +142,6 @@ export default function ContentListPage() {
             let valueA = a[sortField];
             let valueB = b[sortField];
 
-            // Handle special sorting cases
             if (sortField === 'serviceNames') {
                 valueA = valueA.join(', ');
                 valueB = valueB.join(', ');
@@ -126,14 +153,13 @@ export default function ContentListPage() {
                     : valueB.localeCompare(valueA);
             }
 
-            // For dates and numbers
             return sortDirection === 'asc'
                 ? valueA - valueB
                 : valueB - valueA;
         });
 
         setFilteredRecords(sorted);
-    }, [records, searchTerm, typeFilter, sortField, sortDirection]);
+    }, [records, searchTerm, warrantyFilter, sortField, sortDirection]);
 
     const handleSort = (field) => {
         if (sortField === field) {
@@ -207,12 +233,15 @@ export default function ContentListPage() {
                         <div className="relative md:w-64">
                             <select
                                 className="pl-10 pr-4 py-3 border border-gray-200 rounded-lg appearance-none bg-white w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                                value={typeFilter}
-                                onChange={(e) => setTypeFilter(e.target.value)}
+                                value={warrantyFilter}
+                                onChange={(e) => setWarrantyFilter(e.target.value)}
                             >
-                                <option value="all">ทั้งหมด</option>
-                                <option value="quote">ใบเสนอราคา</option>
-                                <option value="receipt">ใบเสร็จ</option>
+                                <option value="all">เงื่อนไขรับประกันทั้งหมด</option>
+                                {warrantyOptions.map(option => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.name}
+                                    </option>
+                                ))}
                             </select>
                             <Filter className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
                             <ChevronDown className="absolute right-3 top-3 text-gray-400 w-5 h-5 pointer-events-none" />
@@ -291,7 +320,7 @@ export default function ContentListPage() {
                                                     {renderSortIcon('serviceNames')}
                                                 </div>
                                             </th>
-                                            
+
                                             <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 <div className="flex items-center">
                                                     <span>พิมพ์</span>
@@ -363,7 +392,7 @@ export default function ContentListPage() {
                                                         )}
                                                     </div>
                                                 </td>
-                                                
+
                                                 <td className="px-6 py-4 whitespace-nowrap space-x-2 text-sm">
                                                     <div className="flex space-x-2 ">
                                                         <button

@@ -11,6 +11,7 @@ import CarDataModal from '../components/CreateCarData';
 import {
   ArrowRight
 } from 'lucide-react';
+import { Checkbox } from '@react-pdf/renderer';
 
 export default function QuotationFormPage() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function QuotationFormPage() {
     discount: '',
     deposit: '',
     remark: '',
+    khonkaenWarranty: '-', // เพิ่มบรรทัดนี้
   });
   const [brands, setBrands] = useState([]);
   const [models, setModels] = useState([]);
@@ -166,7 +168,7 @@ export default function QuotationFormPage() {
       setTimeout(() => el.classList.add('opacity-0'), 4000);
 
       // รีเซ็ตฟอร์ม
-      setForm({ customerName: '', phone: '', address: '', tax_number: '', brand: '', model: '', year: '', license: '', province: '', vin: '', mileage: '', warranty: '', discount: '', deposit: '', remark: '' });
+      setForm({ customerName: '', phone: '', address: '', tax_number: '', brand: '', model: '', year: '', license: '', province: '', vin: '', mileage: '', warranty: '', discount: '', deposit: '', remark: '' , khonkaenWarranty: '-' });
       setItems([{ serviceId: '', unitPrice: '' }]);
       router.push('/');
     } catch (err) {
@@ -573,10 +575,29 @@ export default function QuotationFormPage() {
                     value={form.remark}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows={3}
+                    rows={2}
                     placeholder="รายละเอียดเพิ่มเติม..."
                   />
                 </div>
+                <div className="mb-6">
+  <label className="block text-sm font-medium text-gray-700 mb-3">การรับประกันของถึงแก่น</label>
+  <div className="space-y-2">
+    <label className="flex items-center space-x-2 text-sm">
+      <input
+        type="checkbox"
+        checked={form.khonkaenWarranty === 'การรับประกันของถึงแก่น Care'}
+        onChange={(e) => {
+          setForm(prev => ({
+            ...prev,
+            khonkaenWarranty: e.target.checked ? 'การรับประกันของถึงแก่น Care' : '-'
+          }));
+        }}
+        className="text-blue-600 rounded"
+      />
+      <span>การรับประกันของถึงแก่น Care</span>
+    </label>
+  </div>
+</div>
 
                 {/* Price Summary */}
                 <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
