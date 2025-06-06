@@ -50,45 +50,45 @@ export default function QuotationFormPage() {
 
 
   useEffect(() => {
-  const fetchData = async () => {
-    const [brandSnap, warrantySnap, serviceSnap] = await Promise.all([
-      getDocs(collection(db, 'brands')),
-      getDocs(collection(db, 'warrantyConditions')),
-      getDocs(collection(db, 'services')),
-    ]);
+    const fetchData = async () => {
+      const [brandSnap, warrantySnap, serviceSnap] = await Promise.all([
+        getDocs(collection(db, 'brands')),
+        getDocs(collection(db, 'warrantyConditions')),
+        getDocs(collection(db, 'services')),
+      ]);
 
-    setBrands(
-      brandSnap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name ภาษาไทย
-    );
+      setBrands(
+        brandSnap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name ภาษาไทย
+      );
 
-    setWarrantyList(
-      warrantySnap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name
-    );
+      setWarrantyList(
+        warrantySnap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name
+      );
 
-    setServiceList(
-      serviceSnap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name
-    );
-  };
-  fetchData();
-}, []);
+      setServiceList(
+        serviceSnap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => a.name.localeCompare(b.name, 'th')) // ✅ เรียงตาม name
+      );
+    };
+    fetchData();
+  }, []);
 
 
   useEffect(() => {
-  if (!form.brand) return setModels([]);
-  getDocs(collection(db, 'brands', form.brand, 'models'))
-    .then(snap => {
-      const sortedModels = snap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => a.name.localeCompare(b.name)); // ✅ เรียงตามชื่อ
-      setModels(sortedModels);
-    });
-}, [form.brand]);
+    if (!form.brand) return setModels([]);
+    getDocs(collection(db, 'brands', form.brand, 'models'))
+      .then(snap => {
+        const sortedModels = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => a.name.localeCompare(b.name)); // ✅ เรียงตามชื่อ
+        setModels(sortedModels);
+      });
+  }, [form.brand]);
 
 
   useEffect(() => {
@@ -138,11 +138,11 @@ export default function QuotationFormPage() {
   };
 
   const showFeedback = (message, type = 'success') => {
-  setFeedback({ show: true, message, type });
-  setTimeout(() => {
-    setFeedback({ show: false, message: '', type: '' });
-  }, 3000);
-};
+    setFeedback({ show: true, message, type });
+    setTimeout(() => {
+      setFeedback({ show: false, message: '', type: '' });
+    }, 3000);
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -168,7 +168,7 @@ export default function QuotationFormPage() {
       setTimeout(() => el.classList.add('opacity-0'), 4000);
 
       // รีเซ็ตฟอร์ม
-      setForm({ customerName: '', phone: '', address: '', tax_number: '', brand: '', model: '', year: '', license: '', province: '', vin: '', mileage: '', warranty: '', discount: '', deposit: '', remark: '' , khonkaenWarranty: '-' });
+      setForm({ customerName: '', phone: '', address: '', tax_number: '', brand: '', model: '', year: '', license: '', province: '', vin: '', mileage: '', warranty: '', discount: '', deposit: '', remark: '', khonkaenWarranty: '-' });
       setItems([{ serviceId: '', unitPrice: '' }]);
       router.push('/');
     } catch (err) {
@@ -313,30 +313,30 @@ export default function QuotationFormPage() {
             {/* Vehicle Info */}
             <section className="mb-8">
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-        <div className="flex items-center">
-          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">ข้อมูลรถ</h2>
-            <p className="text-sm text-gray-500 mt-0.5">จัดการข้อมูลยานพาหนะและรายละเอียด</p>
-          </div>
-        </div>
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">ข้อมูลรถ</h2>
+                    <p className="text-sm text-gray-500 mt-0.5">จัดการข้อมูลยานพาหนะและรายละเอียด</p>
+                  </div>
+                </div>
 
-        <button
-          onClick={() => setShowCarModal(true)}
-          className="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 hover:border-blue-300 hover:bg-blue-50 text-gray-700 hover:text-blue-700 font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          เพิ่มข้อมูลรถ
-        </button>
-      </div>
+                <button
+                  onClick={() => setShowCarModal(true)}
+                  className="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 hover:border-blue-300 hover:bg-blue-50 text-gray-700 hover:text-blue-700 font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  เพิ่มข้อมูลรถ
+                </button>
+              </div>
 
-      
+
               <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -579,25 +579,7 @@ export default function QuotationFormPage() {
                     placeholder="รายละเอียดเพิ่มเติม..."
                   />
                 </div>
-                <div className="mb-6">
-  <label className="block text-sm font-medium text-gray-700 mb-3">การรับประกันของถึงแก่น</label>
-  <div className="space-y-2">
-    <label className="flex items-center space-x-2 text-sm">
-      <input
-        type="checkbox"
-        checked={form.khonkaenWarranty === 'การรับประกันของถึงแก่น Care'}
-        onChange={(e) => {
-          setForm(prev => ({
-            ...prev,
-            khonkaenWarranty: e.target.checked ? 'การรับประกันของถึงแก่น Care' : '-'
-          }));
-        }}
-        className="text-blue-600 rounded"
-      />
-      <span>การรับประกันของถึงแก่น Care</span>
-    </label>
-  </div>
-</div>
+                
 
                 {/* Price Summary */}
                 <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
@@ -699,13 +681,13 @@ export default function QuotationFormPage() {
         </div>
       </div>
       {/* Modal - อยู่นอก form หลัก */}
-      <CarDataModal 
-        isOpen={showCarModal} 
-        onClose={() => setShowCarModal(false)} 
-        showFeedback={showFeedback} 
+      <CarDataModal
+        isOpen={showCarModal}
+        onClose={() => setShowCarModal(false)}
+        showFeedback={showFeedback}
       />
     </div>
 
-    
+
   );
 }
