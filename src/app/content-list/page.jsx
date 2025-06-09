@@ -1,18 +1,20 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { db } from '../lib/firebase';
-import { collection, getDocs, getDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getNextRunningNumber } from '../utils/generateRunningNumber';
 import {
     Search, Filter, Loader2, FileText, Receipt,
-    ChevronDown, ChevronUp, ArrowLeft, Calendar, MapPin, Pencil, ArrowRight
+    ChevronDown, ChevronUp, ArrowLeft, Calendar, MapPin, Pencil, ArrowRight, Copy
 } from 'lucide-react';
 
 export default function ContentListPage() {
     const [records, setRecords] = useState([]);
     const [filteredRecords, setFilteredRecords] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [duplicating, setDuplicating] = useState(null); // เก็บ ID ของรายการที่กำลัง duplicate
     const [searchTerm, setSearchTerm] = useState('');
     const [warrantyFilter, setWarrantyFilter] = useState('all');
     const [warrantyOptions, setWarrantyOptions] = useState([]);
@@ -81,6 +83,7 @@ export default function ContentListPage() {
                             warranty: warrantyIds, // เก็บ ID สำหรับ filter
                             warrantyName,
                             createdAt: data.createdAt?.toDate() || new Date(),
+                            originalData: data // เก็บข้อมูลเดิมไว้สำหรับ duplicate
                         };
                     })
                 );
@@ -114,6 +117,47 @@ export default function ContentListPage() {
 
         fetchWarrantyOptions();
     }, []);
+
+    // Function สำหรับ duplicate ข้อมูล
+    const handleDuplicate = async (recordId) => {
+    setDuplicating(recordId);
+    try {
+        // หา record ที่จะ duplicate
+        const recordToDuplicate = records.find(r => r.id === recordId);
+        if (!recordToDuplicate) {
+            alert('ไม่พบข้อมูลที่จะคัดลอก');
+            return;
+        }
+
+        // สร้างหมายเลขลำดับใหม่
+        const id_number = await getNextRunningNumber();
+
+        // สร้างข้อมูลใหม่โดยใช้ข้อมูลเดิม
+        const duplicatedData = {
+            ...recordToDuplicate.originalData,
+            id_number, // เพิ่ม id_number ใหม่
+            runningNumber: id_number, // ใช้หมายเลขลำดับใหม่
+            createdAt: serverTimestamp(), // ใช้เวลาปัจจุบัน
+            // เพิ่ม prefix "[คัดลอก]" ในชื่อลูกค้าเพื่อแยกแยะ
+            customerName: `[คัดลอก] ${recordToDuplicate.originalData.customerName || 'ไม่ระบุชื่อ'}`
+        };
+
+        // บันทึกข้อมูลใหม่ลง Firestore
+        const docRef = await addDoc(collection(db, 'quotes'), duplicatedData);
+
+        // แจ้งเตือนความสำเร็จพร้อมแสดงหมายเลขใหม่
+        alert(`คัดลอกข้อมูลเรียบร้อยแล้ว\nหมายเลขใหม่: ${id_number}`);
+
+        // รีเฟรชข้อมูล
+        window.location.reload();
+
+    } catch (error) {
+        console.error("Error duplicating record:", error);
+        alert('เกิดข้อผิดพลาดในการคัดลอกข้อมูล');
+    } finally {
+        setDuplicating(null);
+    }
+};
 
     useEffect(() => {
         // Filter records based on search term and warranty filter
@@ -320,15 +364,14 @@ export default function ContentListPage() {
                                                     {renderSortIcon('serviceNames')}
                                                 </div>
                                             </th>
-
                                             <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 <div className="flex items-center">
                                                     <span>พิมพ์</span>
                                                 </div>
                                             </th>
                                             <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                <div className="flex items-center ">
-                                                    <span>แก้ไข</span>
+                                                <div className="flex items-center">
+                                                    <span>จัดการ</span>
                                                 </div>
                                             </th>
                                         </tr>
@@ -392,17 +435,16 @@ export default function ContentListPage() {
                                                         )}
                                                     </div>
                                                 </td>
-
                                                 <td className="px-6 py-4 whitespace-nowrap space-x-2 text-sm">
-                                                    <div className="flex space-x-2 ">
+                                                    <div className="flex flex-wrap gap-1">
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 router.push(`/quotation/${item.id}`);
                                                             }}
-                                                            className="px-3 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md transition-colors flex items-center cursor-pointer"
+                                                            className="px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md transition-colors flex items-center cursor-pointer text-xs"
                                                         >
-                                                            <FileText className="w-3.5 h-3.5 mr-1" />
+                                                            <FileText className="w-3 h-3 mr-1" />
                                                             ใบเสนอราคา
                                                         </button>
                                                         <button
@@ -410,9 +452,9 @@ export default function ContentListPage() {
                                                                 e.stopPropagation();
                                                                 router.push(`/receipt/${item.id}`);
                                                             }}
-                                                            className="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded-md transition-colors flex items-center cursor-pointer"
+                                                            className="px-2 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded-md transition-colors flex items-center cursor-pointer text-xs"
                                                         >
-                                                            <Receipt className="w-3.5 h-3.5 mr-1" />
+                                                            <Receipt className="w-3 h-3 mr-1" />
                                                             ใบเสร็จ
                                                         </button>
                                                         <button
@@ -420,9 +462,9 @@ export default function ContentListPage() {
                                                                 e.stopPropagation();
                                                                 router.push(`/invoice/${item.id}`);
                                                             }}
-                                                            className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors flex items-center cursor-pointer"
+                                                            className="px-2 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors flex items-center cursor-pointer text-xs"
                                                         >
-                                                            <Receipt className="w-3.5 h-3.5 mr-1" />
+                                                            <Receipt className="w-3 h-3 mr-1" />
                                                             ใบแจ้งหนี้
                                                         </button>
                                                         <button
@@ -430,26 +472,47 @@ export default function ContentListPage() {
                                                                 e.stopPropagation();
                                                                 router.push(`/vehicle-receive/${item.id}`);
                                                             }}
-                                                            className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors flex items-center cursor-pointer"
+                                                            className="px-2 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors flex items-center cursor-pointer text-xs"
                                                         >
-                                                            <Receipt className="w-3.5 h-3.5 mr-1" />
+                                                            <Receipt className="w-3 h-3 mr-1" />
                                                             ใบรับรถ
                                                         </button>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap ">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            router.push(`/editForm/${item.id}`);
-                                                        }}
-                                                        className="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors flex items-center text-sm cursor-pointer"
-                                                    >
-                                                        <Pencil className="w-4 h-4 mr-1 " />
-                                                        แก้ไข
-                                                    </button>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex flex-wrap gap-1">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                router.push(`/editForm/${item.id}`);
+                                                            }}
+                                                            className="px-2 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md transition-colors flex items-center text-xs cursor-pointer"
+                                                        >
+                                                            <Pencil className="w-3 h-3 mr-1" />
+                                                            แก้ไข
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (window.confirm('คุณต้องการคัดลอกข้อมูลนี้หรือไม่?')) {
+                                                                    handleDuplicate(item.id);
+                                                                }
+                                                            }}
+                                                            disabled={duplicating === item.id}
+                                                            className={`px-2 py-1 rounded-md transition-colors flex items-center text-xs cursor-pointer ${duplicating === item.id
+                                                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                                    : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                                                                }`}
+                                                        >
+                                                            {duplicating === item.id ? (
+                                                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                                            ) : (
+                                                                <Copy className="w-3 h-3 mr-1" />
+                                                            )}
+                                                            {duplicating === item.id ? 'กำลังคัดลอก...' : 'คัดลอก'}
+                                                        </button>
+                                                    </div>
                                                 </td>
-
                                             </tr>
                                         ))}
                                     </tbody>
