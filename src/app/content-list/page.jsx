@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { db } from '../lib/firebase';
 import { collection, getDocs, getDoc, doc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -13,13 +13,22 @@ import {
 export default function ContentListPage() {
     const [records, setRecords] = useState([]);
     const [filteredRecords, setFilteredRecords] = useState([]);
+    const [displayedRecords, setDisplayedRecords] = useState([]); // Records ที่แสดงในตาราง
     const [loading, setLoading] = useState(true);
-    const [duplicating, setDuplicating] = useState(null); // เก็บ ID ของรายการที่กำลัง duplicate
+    const [loadingMore, setLoadingMore] = useState(false); // Loading สำหรับโหลดข้อมูลเพิ่ม
+    const [duplicating, setDuplicating] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [warrantyFilter, setWarrantyFilter] = useState('all');
     const [warrantyOptions, setWarrantyOptions] = useState([]);
     const [sortField, setSortField] = useState('createdAt');
     const [sortDirection, setSortDirection] = useState('desc');
+    
+    // Infinite scroll settings
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(20); // จำนวนรายการต่อหน้า
+    const [hasMore, setHasMore] = useState(true);
+    
+    const tableRef = useRef(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -57,7 +66,7 @@ export default function ContentListPage() {
 
                         // ดึงชื่อ warranty และเก็บ ID ไว้ด้วย
                         let warrantyName = '-';
-                        let warrantyIds = data.warranty; // เก็บ ID เดิมไว้สำหรับ filter
+                        let warrantyIds = data.warranty;
 
                         if (Array.isArray(data.warranty)) {
                             const names = [];
@@ -80,10 +89,10 @@ export default function ContentListPage() {
                             serviceNames,
                             license: data.license || '-',
                             province: data.province || '-',
-                            warranty: warrantyIds, // เก็บ ID สำหรับ filter
+                            warranty: warrantyIds,
                             warrantyName,
                             createdAt: data.createdAt?.toDate() || new Date(),
-                            originalData: data // เก็บข้อมูลเดิมไว้สำหรับ duplicate
+                            originalData: data
                         };
                     })
                 );
@@ -120,47 +129,38 @@ export default function ContentListPage() {
 
     // Function สำหรับ duplicate ข้อมูล
     const handleDuplicate = async (recordId) => {
-    setDuplicating(recordId);
-    try {
-        // หา record ที่จะ duplicate
-        const recordToDuplicate = records.find(r => r.id === recordId);
-        if (!recordToDuplicate) {
-            alert('ไม่พบข้อมูลที่จะคัดลอก');
-            return;
+        setDuplicating(recordId);
+        try {
+            const recordToDuplicate = records.find(r => r.id === recordId);
+            if (!recordToDuplicate) {
+                alert('ไม่พบข้อมูลที่จะคัดลอก');
+                return;
+            }
+
+            const id_number = await getNextRunningNumber();
+
+            const duplicatedData = {
+                ...recordToDuplicate.originalData,
+                id_number,
+                runningNumber: id_number,
+                createdAt: serverTimestamp(),
+                customerName: `[คัดลอก] ${recordToDuplicate.originalData.customerName || 'ไม่ระบุชื่อ'}`
+            };
+
+            const docRef = await addDoc(collection(db, 'quotes'), duplicatedData);
+            alert(`คัดลอกข้อมูลเรียบร้อยแล้ว\nหมายเลขใหม่: ${id_number}`);
+            window.location.reload();
+
+        } catch (error) {
+            console.error("Error duplicating record:", error);
+            alert('เกิดข้อผิดพลาดในการคัดลอกข้อมูล');
+        } finally {
+            setDuplicating(null);
         }
+    };
 
-        // สร้างหมายเลขลำดับใหม่
-        const id_number = await getNextRunningNumber();
-
-        // สร้างข้อมูลใหม่โดยใช้ข้อมูลเดิม
-        const duplicatedData = {
-            ...recordToDuplicate.originalData,
-            id_number, // เพิ่ม id_number ใหม่
-            runningNumber: id_number, // ใช้หมายเลขลำดับใหม่
-            createdAt: serverTimestamp(), // ใช้เวลาปัจจุบัน
-            // เพิ่ม prefix "[คัดลอก]" ในชื่อลูกค้าเพื่อแยกแยะ
-            customerName: `[คัดลอก] ${recordToDuplicate.originalData.customerName || 'ไม่ระบุชื่อ'}`
-        };
-
-        // บันทึกข้อมูลใหม่ลง Firestore
-        const docRef = await addDoc(collection(db, 'quotes'), duplicatedData);
-
-        // แจ้งเตือนความสำเร็จพร้อมแสดงหมายเลขใหม่
-        alert(`คัดลอกข้อมูลเรียบร้อยแล้ว\nหมายเลขใหม่: ${id_number}`);
-
-        // รีเฟรชข้อมูล
-        window.location.reload();
-
-    } catch (error) {
-        console.error("Error duplicating record:", error);
-        alert('เกิดข้อผิดพลาดในการคัดลอกข้อมูล');
-    } finally {
-        setDuplicating(null);
-    }
-};
-
+    // Filter และ sort records
     useEffect(() => {
-        // Filter records based on search term and warranty filter
         const filtered = records.filter(record => {
             const matchesSearch =
                 record.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -168,9 +168,6 @@ export default function ContentListPage() {
                 record.modelName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 record.serviceNames.some(service => service.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 record.license?.toLowerCase().includes(searchTerm.toLowerCase());
-
-            // Debug log เพื่อดูข้อมูล
-            console.log('Record warranty:', record.warranty, 'Filter:', warrantyFilter);
 
             const matchesWarranty = warrantyFilter === 'all' ||
                 (record.warranty && (
@@ -181,7 +178,6 @@ export default function ContentListPage() {
             return matchesSearch && matchesWarranty;
         });
 
-        // Sort filtered records
         const sorted = [...filtered].sort((a, b) => {
             let valueA = a[sortField];
             let valueB = b[sortField];
@@ -203,7 +199,54 @@ export default function ContentListPage() {
         });
 
         setFilteredRecords(sorted);
+        setCurrentPage(1); // รีเซ็ตหน้าเมื่อมีการกรองใหม่
+        setHasMore(true);
     }, [records, searchTerm, warrantyFilter, sortField, sortDirection]);
+
+    // จัดการข้อมูลที่แสดงในตาราง (Pagination)
+    useEffect(() => {
+        const startIndex = 0;
+        const endIndex = currentPage * itemsPerPage;
+        const newDisplayedRecords = filteredRecords.slice(startIndex, endIndex);
+        
+        setDisplayedRecords(newDisplayedRecords);
+        setHasMore(endIndex < filteredRecords.length);
+    }, [filteredRecords, currentPage, itemsPerPage]);
+
+    // Function สำหรับโหลดข้อมูลเพิ่ม
+    const loadMoreRecords = useCallback(async () => {
+        if (loadingMore || !hasMore) return;
+        
+        setLoadingMore(true);
+        
+        // จำลองการโหลดข้อมูล (ในกรณีจริงอาจมี delay จาก API)
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        setCurrentPage(prev => prev + 1);
+        setLoadingMore(false);
+    }, [loadingMore, hasMore]);
+
+    // Infinite scroll handler
+    const handleScroll = useCallback(() => {
+        if (!tableRef.current) return;
+        
+        const { scrollTop, scrollHeight, clientHeight } = tableRef.current;
+        const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+        
+        // เมื่อเลื่อนถึง 80% ของความสูงให้โหลดข้อมูลเพิ่ม
+        if (scrollPercentage > 0.8 && hasMore && !loadingMore) {
+            loadMoreRecords();
+        }
+    }, [hasMore, loadingMore, loadMoreRecords]);
+
+    // เพิ่ม scroll event listener
+    useEffect(() => {
+        const tableElement = tableRef.current;
+        if (tableElement) {
+            tableElement.addEventListener('scroll', handleScroll);
+            return () => tableElement.removeEventListener('scroll', handleScroll);
+        }
+    }, [handleScroll]);
 
     const handleSort = (field) => {
         if (sortField === field) {
@@ -261,7 +304,6 @@ export default function ContentListPage() {
 
                     {/* Search and filter section */}
                     <div className="flex flex-col md:flex-row gap-3">
-                        {/* Search input */}
                         <div className="relative flex-grow">
                             <input
                                 type="text"
@@ -273,7 +315,6 @@ export default function ContentListPage() {
                             <Search className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
                         </div>
 
-                        {/* Type filter */}
                         <div className="relative md:w-64">
                             <select
                                 className="pl-10 pr-4 py-3 border border-gray-200 rounded-lg appearance-none bg-white w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
@@ -310,10 +351,18 @@ export default function ContentListPage() {
                 ) : (
                     <>
                         <div className="overflow-hidden bg-white rounded-lg shadow-sm">
-                            <div className="overflow-x-auto">
+                            {/* Table container with fixed height and scroll */}
+                            <div 
+                                ref={tableRef}
+                                className="overflow-auto"
+                                style={{ 
+                                    maxHeight: '70vh', // จำกัดความสูงของตาราง
+                                    scrollBehavior: 'smooth' 
+                                }}
+                            >
                                 <table className="min-w-full divide-y divide-gray-200">
-                                    <thead>
-                                        <tr className="bg-gray-50">
+                                    <thead className="bg-gray-50 sticky top-0 z-10">
+                                        <tr>
                                             <th
                                                 className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                                 onClick={() => handleSort('type')}
@@ -377,17 +426,17 @@ export default function ContentListPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {filteredRecords.map((item) => (
+                                        {displayedRecords.map((item) => (
                                             <tr
                                                 key={item.id}
                                                 className="hover:bg-blue-50 transition-colors cursor-pointer"
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium 
-                                                        ${item.type === 'receipt' 
+                                                    <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                                                        item.type === 'receipt' 
                                                             ? 'bg-green-100 text-green-800' 
-                                                            : 'bg-blue-100 text-blue-800'}"
-                                                    >
+                                                            : 'bg-blue-100 text-blue-800'
+                                                    }`}>
                                                         {getTypeIcon(item.type)}
                                                         {getTypeLabel(item.type)}
                                                     </div>
@@ -499,10 +548,11 @@ export default function ContentListPage() {
                                                                 }
                                                             }}
                                                             disabled={duplicating === item.id}
-                                                            className={`px-2 py-1 rounded-md transition-colors flex items-center text-xs cursor-pointer ${duplicating === item.id
+                                                            className={`px-2 py-1 rounded-md transition-colors flex items-center text-xs cursor-pointer ${
+                                                                duplicating === item.id
                                                                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                                     : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-                                                                }`}
+                                                            }`}
                                                         >
                                                             {duplicating === item.id ? (
                                                                 <Loader2 className="w-3 h-3 mr-1 animate-spin" />
@@ -515,13 +565,101 @@ export default function ContentListPage() {
                                                 </td>
                                             </tr>
                                         ))}
+                                        
+                                        {/* Loading row สำหรับ infinite scroll */}
+                                        {loadingMore && (
+                                            <tr>
+                                                <td colSpan="8" className="px-6 py-8 text-center">
+                                                    <div className="flex justify-center items-center">
+                                                        <Loader2 className="w-6 h-6 animate-spin text-blue-500 mr-2" />
+                                                        <span className="text-gray-600">กำลังโหลดข้อมูลเพิ่มเติม...</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                        
+                                        {/* End of data indicator */}
+                                        {!hasMore && displayedRecords.length > 0 && (
+                                            <tr>
+                                                <td colSpan="8" className="px-6 py-2 text-center">
+                                                    <div className="text-gray-500 text-sm  pt-4">
+                                                        <div className="flex items-center justify-center">
+                                                            <div className="w-2 h-2 bg-gray-300 rounded-full mx-1"></div>
+                                                            <div className="w-2 h-2 bg-gray-300 rounded-full mx-1"></div>
+                                                            <div className="w-2 h-2 bg-gray-300 rounded-full mx-1"></div>
+                                                        </div>
+                                                        <p className="mt-2">แสดงข้อมูลครบทั้งหมดแล้ว</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <div className="mt-4 text-sm text-gray-600 text-right bg-white p-4 rounded-lg shadow-sm">
-                            กำลังแสดง <span className="font-medium">{filteredRecords.length}</span> รายการ จากทั้งหมด <span className="font-medium">{records.length}</span> รายการ
+
+                        {/* Status bar with scroll indicator */}
+                        <div className="mt-4 bg-white p-4 rounded-lg shadow-sm">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                                <div className="text-sm text-gray-600">
+                                    แสดง <span className="font-medium text-blue-600">{displayedRecords.length}</span> รายการ จากทั้งหมด <span className="font-medium text-blue-600">{filteredRecords.length}</span> รายการ
+                                    {filteredRecords.length !== records.length && (
+                                        <span className="text-gray-500"> (กรองจากทั้งหมด {records.length} รายการ)</span>
+                                    )}
+                                </div>
+                                
+                                {/* Progress indicator */}
+                                {filteredRecords.length > itemsPerPage && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                                            <div
+                                                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                                style={{
+                                                    width: `${Math.min((displayedRecords.length / filteredRecords.length) * 100, 100)}%`
+                                                }}
+                                            ></div>
+                                        </div>
+                                        <span className="text-xs text-gray-500">
+                                            {Math.round((displayedRecords.length / filteredRecords.length) * 100)}%
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* Scroll hint */}
+                            {hasMore && displayedRecords.length > 0 && (
+                                <div className="mt-2 text-xs text-gray-500 flex items-center justify-center">
+                                    <ChevronDown className="w-4 h-4 mr-1 animate-bounce" />
+                                    เลื่อนลงเพื่อดูข้อมูลเพิ่มเติม
+                                </div>
+                            )}
                         </div>
+
+                        {/* Load more button (alternative to infinite scroll) */}
+                        {hasMore && displayedRecords.length > 0 && (
+                            <div className="mt-4 text-center">
+                                <button
+                                    onClick={loadMoreRecords}
+                                    disabled={loadingMore}
+                                    className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                                        loadingMore
+                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                            : 'bg-blue-500 text-white hover:bg-blue-600 hover:shadow-lg transform hover:-translate-y-0.5'
+                                    }`}
+                                >
+                                    {loadingMore ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin inline" />
+                                            กำลังโหลด...
+                                        </>
+                                    ) : (
+                                        <>
+                                            โหลดข้อมูลเพิ่มเติม ({filteredRecords.length - displayedRecords.length} รายการ)
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        )}
                     </>
                 )}
             </div>
