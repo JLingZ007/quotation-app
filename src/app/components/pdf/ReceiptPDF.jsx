@@ -392,7 +392,7 @@ const ReceiptPDF = ({ form, services = [], brand, model, remark, warranty = [], 
                 <Text style={styles.companyName}>บริษัท ถึงแก่น อีลิท ชิลด์ จำกัด</Text>
                 <Text style={styles.companyEnName}>THUENGKAEN ELITE SHIELD CO.,LTD.</Text>
                 <Text style={styles.companyAddress}>
-                  149/1 ถนนมิตรภาพ ตำบลในเมือง อำเภอเมืองขอนแก่น จังหวัดขอนแก่น 40000
+                  149/1 ถนนเหล่านาดี ตำบลในเมือง อำเภอเมืองขอนแก่น จังหวัดขอนแก่น 40000
                 </Text>
                 <Text style={styles.companyAddress}>เบอร์โทร: 082-659-5365, 063-686-9999</Text>
                 <Text style={styles.companyAddress}>

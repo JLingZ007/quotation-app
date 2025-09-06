@@ -218,7 +218,7 @@ export default function ContentDetailPage() {
                                 <h1 className="text-lg font-bold">บริษัท ถึงแก่น อีลิท ชิลด์ จำกัด</h1>
                                 <h2 className="text-md font-bold">THUENGKAEN ELITE SHIELD CO.,LTD.</h2>
                                 <p className="text-xs text-gray-800">
-                                    149/1 ถนนมิตรภาพ ตำบลในเมือง อำเภอเมืองขอนแก่น จังหวัดขอนแก่น 40000
+                                    149/1 ถนนเหล่านาดี ตำบลในเมือง อำเภอเมืองขอนแก่น จังหวัดขอนแก่น 40000
                                 </p>
                                 <p className="text-xs text-gray-800">
                                     เบอร์โทร: 082-659-5365, 063-686-9999
